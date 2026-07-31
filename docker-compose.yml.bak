@@ -1,0 +1,55 @@
+services:
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: component-backend
+    restart: unless-stopped
+
+    environment:
+      DB_HOST: 192.168.0.95
+      DB_PORT: 5433
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASSWORD: beelab
+
+      NODE_ENV: development
+      PORT: 3001
+
+    ports:
+      - "3001:3001"
+
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+    networks:
+      - component-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: component-frontend
+    restart: unless-stopped
+
+    depends_on:
+      - backend
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+    environment:
+      VITE_API_URL: http://localhost:3001/api
+
+    networks:
+      - component-net
+
+networks:
+  component-net:
+    driver: bridge
