@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { getComponents } from "../services/components";
 
 import {
     Paper,
@@ -17,10 +17,22 @@ function Components() {
 
     useEffect(() => {
 
-        axios.get("http://localhost:3001/api/components")
-            .then(res => {
-                setComponents(res.data);
-            });
+        async function load() {
+
+            try {
+
+                const data = await getComponents();
+                setComponents(data);
+
+            } catch (err) {
+
+                console.error("Failed to load components:", err);
+
+            }
+
+        }
+
+        load();
 
     }, []);
 
@@ -30,10 +42,9 @@ function Components() {
 
             <Typography
                 variant="h4"
-                gutterBottom>
-
+                gutterBottom
+            >
                 Components
-
             </Typography>
 
             <Paper>
@@ -57,11 +68,12 @@ function Components() {
 
                     <TableBody>
 
-                        {components.map(component => (
+                        {components.map((component) => (
 
                             <TableRow
                                 key={component.id}
-                                hover>
+                                hover
+                            >
 
                                 <TableCell>{component.part_number}</TableCell>
                                 <TableCell>{component.description}</TableCell>

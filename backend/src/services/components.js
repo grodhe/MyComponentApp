@@ -1,30 +1,9 @@
-const pool = require("../db");
-const schema = process.env.DB_SCHEMA || "public";
+const repository = require("../repositories/components");
 
 async function getAllComponents() {
 
-    const schema = process.env.DB_SCHEMA || "public";
+    return await repository.getAll();
 
-    const sql = `
-        SELECT
-            c.id,
-            c.part_number,
-            c.description,
-            c.quantity,
-            l.name AS location,
-            cat.name AS category,
-            m.name AS manufacturer
-        FROM ${schema}.components c
-        LEFT JOIN ${schema}.locations l
-            ON l.id = c.location_id
-        LEFT JOIN ${schema}.categories cat
-            ON cat.id = c.category_id
-        LEFT JOIN ${schema}.manufacturers m
-            ON m.id = c.manufacturer_id
-        ORDER BY c.part_number;
-    `;
-    const result = await pool.query(sql);
-    return result.rows;
 }
 
 module.exports = {
