@@ -23,9 +23,7 @@ async function getAllComponents() {
             ON m.id = c.manufacturer_id
         ORDER BY c.part_number;
     `;
-
     const result = await pool.query(sql);
-
     return result.rows;
 }
 
