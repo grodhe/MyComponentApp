@@ -1,88 +1,17 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-
-
-import {
-  Container,
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow
-} from "@mui/material";
+import Layout from "./components/Layout";
+import Components from "./pages/Components";
 
 function App() {
 
-  const [components, setComponents] = useState([]);
+    return (
 
-  useEffect(() => {
+        <Layout>
 
-    axios
-      .get("http://localhost:3001/api/components")
-      .then(res => {
-        setComponents(res.data);
-      })
-      .catch(err => {
-        console.error(err);
-      });
+            <Components />
 
-  }, []);
+        </Layout>
 
-  return (
-
-    <Container sx={{ mt: 4 }}>
-
-      <Typography variant="h4" gutterBottom>
-        Component Inventory
-      </Typography>
-
-      <Paper>
-
-        <Table>
-
-          <TableHead>
-
-            <TableRow>
-
-              <TableCell>Part Number</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Manufacturer</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>Location</TableCell>
-              <TableCell align="right">Qty</TableCell>
-
-            </TableRow>
-
-          </TableHead>
-
-          <TableBody>
-
-            {components.map(component => (
-
-              <TableRow key={component.id} hover>
-
-                <TableCell>{component.part_number}</TableCell>
-                <TableCell>{component.description}</TableCell>
-                <TableCell>{component.manufacturer}</TableCell>
-                <TableCell>{component.category}</TableCell>
-                <TableCell>{component.location}</TableCell>
-                <TableCell align="right">{component.quantity}</TableCell>
-
-              </TableRow>
-
-            ))}
-
-          </TableBody>
-
-        </Table>
-
-      </Paper>
-
-    </Container>
-
-  );
+    );
 
 }
 
