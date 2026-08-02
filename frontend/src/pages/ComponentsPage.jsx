@@ -44,6 +44,11 @@ function ComponentsPage() {
             headerName: "Part Number",
             flex: 1
         },
+	{
+            field: "part_name",
+            headerName: "Part Name",
+            flex: 1.5
+        },
 
         {
             field: "description",
@@ -85,6 +90,7 @@ function ComponentsPage() {
         return (
 
             component.part_number.toLowerCase().includes(text) ||
+            component.part_name.toLowerCase().includes(text) ||
             component.description.toLowerCase().includes(text) ||
             component.manufacturer.toLowerCase().includes(text) ||
             component.category.toLowerCase().includes(text) ||

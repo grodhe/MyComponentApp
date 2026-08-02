@@ -9,6 +9,7 @@ async function getAll() {
         SELECT
             c.id,
             c.part_number,
+            c.part_name,
             c.description,
             c.quantity,
             l.name AS location,

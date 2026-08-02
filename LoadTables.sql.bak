@@ -46,7 +46,6 @@ ON CONFLICT (name) DO NOTHING;
 INSERT INTO compo.components
 (
     part_number,
-    part_name,
     description,
     manufacturer_id,
     category_id,
@@ -58,7 +57,6 @@ INSERT INTO compo.components
     notes
 )
 SELECT
-    'ESP32-C6-WROOM-1',
     'ESP32-C6-WROOM-1',
     'WiFi 6 / BLE / Thread Module',
     m.id,
@@ -80,7 +78,6 @@ ON CONFLICT DO NOTHING;
 INSERT INTO compo.components
 (
     part_number,
-    part_name,
     description,
     manufacturer_id,
     category_id,
@@ -92,7 +89,6 @@ INSERT INTO compo.components
     notes
 )
 SELECT
-    'LM2596S',
     'LM2596S',
     'Buck Regulator',
     m.id,
@@ -114,7 +110,6 @@ ON CONFLICT DO NOTHING;
 INSERT INTO compo.components
 (
     part_number,
-    part_name,
     description,
     manufacturer_id,
     category_id,
@@ -124,7 +119,6 @@ INSERT INTO compo.components
     minimum_quantity
 )
 SELECT
-    '74HC595',
     '74HC595',
     'Shift Register',
     m.id,
@@ -144,7 +138,6 @@ ON CONFLICT DO NOTHING;
 INSERT INTO compo.components
 (
     part_number,
-    part_name,
     description,
     manufacturer_id,
     category_id,
@@ -155,7 +148,6 @@ INSERT INTO compo.components
     notes
 )
 SELECT
-    'HX711',
     'HX711',
     '24-bit Load Cell ADC',
     m.id,
@@ -176,7 +168,6 @@ ON CONFLICT DO NOTHING;
 INSERT INTO compo.components
 (
     part_number,
-    part_name,
     description,
     manufacturer_id,
     category_id,
@@ -186,7 +177,6 @@ INSERT INTO compo.components
     minimum_quantity
 )
 SELECT
-    'BME280',
     'BME280',
     'Temperature/Humidity/Pressure Sensor',
     m.id,

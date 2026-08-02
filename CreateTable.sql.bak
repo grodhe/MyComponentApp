@@ -63,7 +63,6 @@ CREATE TABLE components (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     part_number VARCHAR(150) NOT NULL,
-	part_name  VARCHAR(150) NOT NULL,
     description TEXT NOT NULL,
 
     manufacturer_id BIGINT,
