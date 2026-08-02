@@ -1,20 +1,38 @@
+import Box from "@mui/material/Box";
+import Toolbar from "@mui/material/Toolbar";
+
 import Header from "./Header";
+import Navigation from "./Navigation";
+
+const drawerWidth = 240;
 
 function Layout({ children }) {
+
     return (
-        <>
+
+        <Box sx={{ display: "flex" }}>
+
             <Header />
-            <div
-                style={{
-                    maxWidth: "1400px",
-                    margin: "30px auto",
-                    padding: "20px"
-                }}
-            >
+
+            <Navigation />
+             <Box
+               component="main"
+               sx={{
+               flexGrow: 1,
+               bgcolor: "background.default",
+               p: 3
+               }}
+              >
+                <Toolbar />
+
                 {children}
-            </div>
-        </>
+
+            </Box>
+
+        </Box>
+
     );
+
 }
 
 export default Layout;
