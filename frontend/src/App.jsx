@@ -1,13 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 
-import Layout from "./components/Layout";
+import Layout from "./components/layout/Layout";
 
-import Components from "./pages/Components";
-import Manufacturers from "./pages/Manufacturers";
-import Categories from "./pages/Categories";
-import Locations from "./pages/Locations";
-import Suppliers from "./pages/Suppliers";
-import Projects from "./pages/Projects";
+import ComponentsPage from "./pages/ComponentsPage";
+import Manufacturers from "./pages/ManufacturersPage";
+import Categories from "./pages/CategoriesPage";
+import Locations from "./pages/LocationsPage";
+import Suppliers from "./pages/SuppliersPage";
+import Projects from "./pages/ProjectsPage";
 
 function App() {
 
@@ -19,31 +19,31 @@ function App() {
 
                 <Route
                     path="/"
-                    element={<Components />}
+                    element={<ComponentsPage />}
                 />
 
                 <Route
-                    path="/manufacturers"
+                    path="/manufacturersPage"
                     element={<Manufacturers />}
                 />
 
                 <Route
-                    path="/categories"
+                    path="/categoriesPage"
                     element={<Categories />}
                 />
 
                 <Route
-                    path="/locations"
+                    path="/locationsPage"
                     element={<Locations />}
                 />
 
                 <Route
-                    path="/suppliers"
+                    path="/suppliersPage"
                     element={<Suppliers />}
                 />
 
                 <Route
-                    path="/projects"
+                    path="/projectsPage"
                     element={<Projects />}
                 />
 
