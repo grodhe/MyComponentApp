@@ -42,12 +42,13 @@ function ComponentsPage() {
         {
             field: "part_number",
             headerName: "Part Number",
-            flex: 1
+            width: 170
         },
-	{
+
+        {
             field: "part_name",
             headerName: "Part Name",
-            flex: 1.5
+            flex: 2
         },
 
         {
@@ -59,19 +60,31 @@ function ComponentsPage() {
         {
             field: "manufacturer",
             headerName: "Manufacturer",
-            flex: 1
+            width: 180
+        },
+
+        {
+            field: "package",
+            headerName: "Package",
+            width: 120
+        },
+
+        {
+            field: "component_value",
+            headerName: "Value",
+            width: 120
         },
 
         {
             field: "category",
             headerName: "Category",
-            flex: 1
+            width: 140
         },
 
         {
             field: "location",
             headerName: "Location",
-            flex: 1
+            width: 140
         },
 
         {
@@ -89,12 +102,14 @@ function ComponentsPage() {
 
         return (
 
-            component.part_number.toLowerCase().includes(text) ||
-            component.part_name.toLowerCase().includes(text) ||
-            component.description.toLowerCase().includes(text) ||
-            component.manufacturer.toLowerCase().includes(text) ||
-            component.category.toLowerCase().includes(text) ||
-            component.location.toLowerCase().includes(text)
+            (component.part_number ?? "").toLowerCase().includes(text) ||
+            (component.part_name ?? "").toLowerCase().includes(text) ||
+            (component.description ?? "").toLowerCase().includes(text) ||
+            (component.manufacturer ?? "").toLowerCase().includes(text) ||
+            (component.package ?? "").toLowerCase().includes(text) ||
+            (component.component_value ?? "").toLowerCase().includes(text) ||
+            (component.category ?? "").toLowerCase().includes(text) ||
+            (component.location ?? "").toLowerCase().includes(text)
 
         );
 

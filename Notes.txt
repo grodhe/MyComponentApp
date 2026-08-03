@@ -1,3 +1,72 @@
 npm run dev
 	
 http://localhost:5173/
+
+
+
+ALTER DATABASE my_database SET SEARCH_PATH TO my_schema;
+
+set search_path = pigges;
+set search_path = compo;
+\cd H:
+postgres-# \cd /MyComponentApp/database
+
+
+------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+Legacy Camera Stack" with raspi-config tool.
+
+from picamzero import Camera
+import os
+
+home_dir = os.environ['HOME']
+cam = Camera()
+
+cam.start_preview()
+cam.record_video(f"{home_dir}/Desktop/new_video.mp4", duration=5)
+cam.stop_preview()
+
+
+
+https://www.rtscan.com/embedded-barcode-scanner-for-raspberry-pi-use-embedded-barcode-scanners-with-raspberry-pi/
+https://www.aliexpress.com/item/32854848595.html#nav-specification
+
+------------------------------------------------------------------------------------------------------------------------
+
+
+Virtuell python
+
+sudo apt install python3-venv
+python3 -m venv scanna
+source scanna/bin/activate
+
+install pyzbar
+
+sudo pip3 install pyzbar
+
+and opencv..
+
+sudo pip3 install opencv-python
+sudo apt-get install libcblas-dev
+sudo apt-get install libhdf5-dev
+sudo apt-get install libhdf5-serial-dev
+sudo apt-get install libatlas-base-dev
+sudo apt-get install libjasper-dev
+sudo apt-get install libqtgui4
+sudo apt-get install libqt4-test
+
+UPDATE FOR BUSTER...
+
+
+sudo apt-get install python3-opencv
+sudo apt-get install libhdf5-dev
+sudo apt-get install libhdf5-serial-dev
+sudo apt-get install libatlas-base-dev
+sudo apt-get install libjasper-dev
+sudo apt-get install libqtgui4
+sudo apt-get install libqt4-test
+
+pip install opencv-python

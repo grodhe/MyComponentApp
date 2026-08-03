@@ -58,22 +58,27 @@ CREATE TABLE suppliers (
 -- ============================================================
 -- Components
 -- ============================================================
-
 CREATE TABLE components (
+
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     part_number VARCHAR(150) NOT NULL,
-	part_name  VARCHAR(150) NOT NULL,
+    part_name VARCHAR(150) NOT NULL,
+
     description TEXT NOT NULL,
 
     manufacturer_id BIGINT,
     category_id BIGINT,
     location_id BIGINT,
 
+    manufacturer_part_number VARCHAR(150),
+    supplier_part_number VARCHAR(150),
+
     package VARCHAR(50),
+    footprint VARCHAR(100),
+    component_value VARCHAR(100),
 
     quantity INTEGER NOT NULL DEFAULT 0,
-
     minimum_quantity INTEGER NOT NULL DEFAULT 0,
 
     datasheet_url TEXT,
@@ -97,6 +102,7 @@ CREATE TABLE components (
         FOREIGN KEY (location_id)
         REFERENCES locations(id)
         ON DELETE SET NULL
+
 );
 
 -- ============================================================
