@@ -1,4 +1,4 @@
-const repository = require("../repositories/components");
+const repository = require("../repositories/componentsRepository");
 
 async function getAllComponents() {
 

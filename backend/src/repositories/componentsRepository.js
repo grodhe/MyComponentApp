@@ -1,7 +1,4 @@
-const pool = require("../config/db");
-const config = require("../config/app");
-
-const schema = config.db.schema;
+const { pool, schema } = require("./baseRepository");
 
 async function getAll() {
 
@@ -78,9 +75,6 @@ async function getById(id) {
 }
 
 module.exports = {
-    getAll ,
-    getById,
-    insert,
-    update,
-    remove
+    getAll,
+    getById
 };

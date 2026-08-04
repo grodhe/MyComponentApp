@@ -1,26 +1,26 @@
 import { DataGrid } from "@mui/x-data-grid";
+
 import Paper from "@mui/material/Paper";
 
 function DataTable({
 
-    rows = [],
-    columns = [],
+    rows,
+    columns,
 
     loading = false,
 
-    pageSize = 25,
-
-    checkboxSelection = false,
+    onRowDoubleClick,
 
     onRowClick,
 
-    onRowDoubleClick
+    onSelectionChange
 
 }) {
 
     return (
 
         <Paper
+            elevation={2}
             sx={{
                 height: 650,
                 width: "100%"
@@ -35,32 +35,51 @@ function DataTable({
 
                 loading={loading}
 
-                checkboxSelection={checkboxSelection}
-
-                disableRowSelectionOnClick
-
                 pageSizeOptions={[10, 25, 50, 100]}
 
                 initialState={{
                     pagination: {
                         paginationModel: {
-                            pageSize
+                            pageSize: 10
                         }
                     }
                 }}
 
-                density="compact"
+                disableRowSelectionOnClick={false}
 
                 onRowClick={onRowClick}
 
                 onRowDoubleClick={onRowDoubleClick}
 
+                onRowSelectionModelChange={(selection) => {
+
+                    if (!onSelectionChange)
+                        return;
+
+                    if (selection.length === 0) {
+
+                        onSelectionChange(null);
+
+                        return;
+
+                    }
+
+                    const row = rows.find(r => r.id === selection[0]);
+
+                    onSelectionChange(row);
+
+                }}
+
+                density="compact"
+
                 sx={{
+
                     border: 0,
 
-                    "& .MuiDataGrid-columnHeaders": {
-                        fontWeight: "bold"
+                    "& .MuiDataGrid-row:hover": {
+                        cursor: "pointer"
                     }
+
                 }}
 
             />

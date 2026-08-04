@@ -3,12 +3,21 @@ import { useEffect, useState } from "react";
 import { getComponents } from "../services/componentService";
 
 import DataTable from "../components/common/DataTable";
-import PageToolbar from "../components/common/PageToolbar";
+import CrudToolbar from "../components/common/CrudToolbar";
 
+function handleDelete(component) {
+
+    if (!component)
+        return;
+
+    alert(`Delete ${component.part_number}`);
+
+}
 function ComponentsPage() {
 
     const [components, setComponents] = useState([]);
     const [filter, setFilter] = useState("");
+    const [selectedComponent, setSelectedComponent] = useState(null);
 
     useEffect(() => {
 
@@ -34,6 +43,17 @@ function ComponentsPage() {
     function handleAdd() {
 
         alert("Add Component dialog will be implemented next.");
+
+    }
+    
+    function handleEdit(component) {
+
+      if (!component)
+        return;
+
+      console.log(component);
+
+       alert(`Edit ${component.part_number}`);
 
     }
 
@@ -119,28 +139,38 @@ function ComponentsPage() {
 
         <>
 
-            <PageToolbar
+	<CrudToolbar
 
-                title="Components"
+		title="Components"
 
-                search={filter}
+		search={filter}
 
-                onSearchChange={setFilter}
+		onSearchChange={setFilter}
 
-                addLabel="Add Component"
+		addLabel="Add Component"
 
-                onAdd={handleAdd}
+		onAdd={handleAdd}
 
-            />
+		onEdit={() => handleEdit(selectedComponent)}
 
-            <DataTable
+		editDisabled={!selectedComponent}
 
-                rows={filteredComponents}
+		onDelete={() => handleDelete(selectedComponent)}
 
-                columns={columns}
+		deleteDisabled={!selectedComponent}
 
-            />
+	  />
+          <DataTable
 
+  	     rows={filteredComponents}
+
+             columns={columns}
+
+             onSelectionChange={setSelectedComponent}
+
+             onRowDoubleClick={(params) => handleEdit(params.row)}
+
+          />
         </>
 
     );
