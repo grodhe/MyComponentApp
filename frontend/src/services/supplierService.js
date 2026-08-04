@@ -1,6 +1,7 @@
-import api from "./api";
+import api from "../api/api";
 
-export async function getComponents() {
-    const response = await api.get("/components");
-    return response.data;
+export function getSuppliers() {
+
+    return api.get("/suppliers");
+
 }

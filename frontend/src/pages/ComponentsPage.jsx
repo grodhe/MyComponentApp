@@ -3,21 +3,18 @@ import { useEffect, useState } from "react";
 import { getComponents } from "../services/componentService";
 
 import DataTable from "../components/common/DataTable";
+
 import CrudToolbar from "../components/common/CrudToolbar";
 
-function handleDelete(component) {
+import ComponentDialog from "../components/dialogs/ComponentDialog";
 
-    if (!component)
-        return;
-
-    alert(`Delete ${component.part_number}`);
-
-}
 function ComponentsPage() {
 
     const [components, setComponents] = useState([]);
     const [filter, setFilter] = useState("");
     const [selectedComponent, setSelectedComponent] = useState(null);
+    
+    const [dialogOpen, setDialogOpen] = useState(false);
 
     useEffect(() => {
 
@@ -42,7 +39,20 @@ function ComponentsPage() {
 
     function handleAdd() {
 
-        alert("Add Component dialog will be implemented next.");
+         setDialogOpen(true);
+
+    }
+
+    function handleClose() {
+
+       setDialogOpen(false);
+
+    }
+    function handleSave(component) {
+
+       console.log(component);
+
+       setDialogOpen(false);
 
     }
     
@@ -56,6 +66,14 @@ function ComponentsPage() {
        alert(`Edit ${component.part_number}`);
 
     }
+   function handleDelete(component) {
+
+	if (!component)
+        return;
+       alert(`Delete ${component.part_number}`);
+
+   }
+
 
     const columns = [
 
@@ -160,6 +178,8 @@ function ComponentsPage() {
 		deleteDisabled={!selectedComponent}
 
 	  />
+
+
           <DataTable
 
   	     rows={filteredComponents}
@@ -171,10 +191,26 @@ function ComponentsPage() {
              onRowDoubleClick={(params) => handleEdit(params.row)}
 
           />
+	 <ComponentDialog
+
+	    open={dialogOpen}
+
+    	    mode="add"
+
+	    component={null}
+
+	    onClose={handleClose}
+
+	    onSave={handleSave}
+
+	/>
+
         </>
 
     );
 
 }
+
+   
 
 export default ComponentsPage;
