@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 
+import { getManufacturers } from "../../services/manufacturerService";
+import { getCategories } from "../../services/categoryService";
+import { getLocations } from "../../services/locationService";
+
 import {
     Dialog,
     DialogTitle,
@@ -10,81 +14,127 @@ import {
 
     TextField,
 
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    Divider,
+
     Button
 
 } from "@mui/material";
 
-const emptyComponent = {
+	const emptyComponent = {
 
-    part_number: "",
-    part_name: "",
-    description: "",
+		part_number: "",
+		part_name: "",
+		description: "",
 
-    manufacturer_id: "",
-    category_id: "",
-    location_id: "",
+		manufacturer_id: "",
+		category_id: "",
+		location_id: "",
 
-    manufacturer_part_number: "",
-    supplier_part_number: "",
+		manufacturer_part_number: "",
+		supplier_part_number: "",
 
-    package: "",
-    footprint: "",
-    component_value: "",
+		package: "",
+		footprint: "",
+		component_value: "",
 
-    quantity: 0,
-    minimum_quantity: 0,
+		quantity: 0,
+		minimum_quantity: 0,
 
-    datasheet_url: "",
-    notes: ""
+		datasheet_url: "",
+		notes: ""
 
-};
+	};
 
-function ComponentDialog({
+	function ComponentDialog({
 
-    open,
+		open,
 
-    mode = "add",
+		mode = "add",
 
-    component,
+		component,
 
-    onClose,
+		onClose,
 
-    onSave
+		onSave
 
-}) {
+	}) {
 
     const [data, setData] = useState(emptyComponent);
+    const [manufacturers, setManufacturers] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [locations, setLocations] = useState([]);
 
-    useEffect(() => {
 
-        if (!open)
-            return;
+	useEffect(() => {
 
-        if (mode === "edit" && component) {
+		if (!open)
+			return;
+		async function loadLookups() {
 
-            setData(component);
+			try {
 
-        } else {
+				const [
 
-            setData(emptyComponent);
+					manufacturers,
 
-        }
+					categories,
 
-    }, [open, mode, component]);
+					locations
 
-    function handleChange(event) {
+				] = await Promise.all([
 
-        const { name, value } = event.target;
+					getManufacturers(),
 
-        setData({
+					getCategories(),
 
-            ...data,
+					getLocations()
 
-            [name]: value
+				]);
 
-        });
+				setManufacturers(manufacturers);
+				setCategories(categories);
+				setLocations(locations);
 
-    }
+			} catch (err) {
+
+				console.error("Failed to load lookups:", err);
+
+			}
+
+		}
+
+		if (mode === "edit" && component) {
+
+			setData(component);
+
+		} else {
+
+			setData(emptyComponent);
+
+		}
+
+		loadLookups();
+
+	}, [open, mode, component]);
+
+
+	function handleChange(event) {
+
+		const { name, value } = event.target;
+
+		setData({
+
+			...data,
+
+			[name]: value
+
+		});
+
+	}
 
     function handleSave() {
 
@@ -101,101 +151,221 @@ function ComponentDialog({
             fullWidth
         >
 
-            <DialogTitle>
+        <DialogTitle>
 
+            {mode === "edit"
+                ? "Edit Component"
+                : "Add Component"}
+
+        </DialogTitle>
+        <DialogContent>
+
+            <Grid
+                container
+                spacing={2}
+                sx={{ mt: 1 }}
+            >
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+
+                    fullWidth
+
+                    label="Part Number"
+
+                    name="part_number"
+
+                    value={data.part_number}
+
+                    onChange={handleChange}
+
+                />
+
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+
+                    fullWidth
+
+                    label="Part Name"
+
+                    name="part_name"
+
+                    value={data.part_name}
+
+                    onChange={handleChange}
+
+                />
+
+            </Grid>
+
+            <Grid size={12}>
+
+                <TextField
+
+                    fullWidth
+
+                    label="Description"
+
+                    name="description"
+
+                    value={data.description}
+
+                    onChange={handleChange}
+
+                />
+
+            </Grid>
+
+            <Grid size={12}>
+
+                <Divider sx={{ mt: 2, mb: 1 }}>
+
+                    Classification
+
+                </Divider>
+
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+            <FormControl fullWidth>
+
+                <InputLabel>Manufacturer</InputLabel>
+
+                <Select
+                    label="Manufacturer"
+                    name="manufacturer_id"
+                    value={data.manufacturer_id}
+                    onChange={handleChange}
+                >
+
+                    <MenuItem value="">
+                        <em>None</em>
+                    </MenuItem>
+
+                    {manufacturers.map((manufacturer) => (
+
+                        <MenuItem
+                            key={manufacturer.id}
+                            value={manufacturer.id}
+                        >
+                            {manufacturer.name}
+                        </MenuItem>
+
+                    ))}
+
+                </Select>
+
+            </FormControl>
+
+            </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+
+            <FormControl fullWidth>
+
+                <InputLabel>Category</InputLabel>
+
+                <Select
+                    label="Category"
+                    name="category_id"
+                    value={data.category_id}
+                    onChange={handleChange}
+                >
+
+                    <MenuItem value="">
+                        <em>None</em>
+                    </MenuItem>
+
+                    {categories.map((category) => (
+
+                        <MenuItem
+                            key={category.id}
+                            value={category.id}
+                        >
+                            {category.name}
+                        </MenuItem>
+
+                    ))}
+
+                </Select>
+
+            </FormControl>
+
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+
+            <FormControl fullWidth>
+
+                <InputLabel>Location</InputLabel>
+
+                <Select
+                    label="Location"
+                    name="location_id"
+                    value={data.location_id}
+                    onChange={handleChange}
+                >
+
+                    <MenuItem value="">
+                        <em>None</em>
+                    </MenuItem>
+
+                    {locations.map((location) => (
+
+                        <MenuItem
+                            key={location.id}
+                            value={location.id}
+                        >
+                            {location.name}
+                        </MenuItem>
+
+                    ))}
+
+                </Select>
+
+              </FormControl>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+                    fullWidth
+                    label="Package"
+                    name="package"
+                    value={data.package}
+                    onChange={handleChange}
+                />
+
+            </Grid>
+        </Grid>
+    </DialogContent>
+
+        <DialogActions>
+
+            <Button
+                onClick={onClose}
+            >
+                Cancel
+            </Button>
+
+            <Button
+                variant="contained"
+                onClick={handleSave}
+            >
                 {mode === "edit"
-                    ? "Edit Component"
-                    : "Add Component"}
+                    ? "Save"
+                    : "Add"}
 
-            </DialogTitle>
+            </Button>
 
-            <DialogContent>
+        </DialogActions>
 
-                <Grid
-                    container
-                    spacing={2}
-                    sx={{ mt: 1 }}
-                >
-
-                    <Grid size={{ xs: 12, md: 6 }}>
-
-                        <TextField
-
-                            fullWidth
-
-                            label="Part Number"
-
-                            name="part_number"
-
-                            value={data.part_number}
-
-                            onChange={handleChange}
-
-                        />
-
-                    </Grid>
-
-                    <Grid size={{ xs: 12, md: 6 }}>
-
-                        <TextField
-
-                            fullWidth
-
-                            label="Part Name"
-
-                            name="part_name"
-
-                            value={data.part_name}
-
-                            onChange={handleChange}
-
-                        />
-
-                    </Grid>
-
-                    <Grid size={12}>
-
-                        <TextField
-
-                            fullWidth
-
-                            label="Description"
-
-                            name="description"
-
-                            value={data.description}
-
-                            onChange={handleChange}
-
-                        />
-
-                    </Grid>
-
-                </Grid>
-
-            </DialogContent>
-
-            <DialogActions>
-
-                <Button
-                    onClick={onClose}
-                >
-                    Cancel
-                </Button>
-
-                <Button
-                    variant="contained"
-                    onClick={handleSave}
-                >
-                    {mode === "edit"
-                        ? "Save"
-                        : "Add"}
-
-                </Button>
-
-            </DialogActions>
-
-        </Dialog>
+    </Dialog>
 
     );
 
