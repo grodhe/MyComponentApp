@@ -56,7 +56,29 @@ function DataTable({
                     if (!onSelectionChange)
                         return;
 
-                    if (selection.length === 0) {
+                    // @mui/x-data-grid v8+ passes { type: "include" | "exclude", ids: Set }
+                    // instead of a plain array. Support both shapes so this keeps working
+                    // whichever version ends up installed.
+                    let selectedId;
+
+                    if (Array.isArray(selection)) {
+
+                        selectedId = selection[0];
+
+                    } else if (selection && selection.ids instanceof Set) {
+
+                        if (selection.type === "include") {
+
+                            selectedId = selection.ids.values().next().value;
+
+                        }
+
+                        // "exclude" selection (e.g. select-all-minus-a-few) isn't used by
+                        // this single-selection table, so it's treated as "nothing selected".
+
+                    }
+
+                    if (selectedId === undefined) {
 
                         onSelectionChange(null);
 
@@ -64,9 +86,9 @@ function DataTable({
 
                     }
 
-                    const row = rows.find(r => r.id === selection[0]);
+                    const row = rows.find(r => r.id === selectedId);
 
-                    onSelectionChange(row);
+                    onSelectionChange(row ?? null);
 
                 }}
 

@@ -17,6 +17,10 @@ async function request(path, options = {}) {
 
     }
 
+    if (response.status === 204) {
+        return null;
+    }
+
     return await response.json();
 
 }

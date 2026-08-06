@@ -35,7 +35,6 @@ import {
 		location_id: "",
 
 		manufacturer_part_number: "",
-		supplier_part_number: "",
 
 		package: "",
 		footprint: "",
@@ -338,6 +337,114 @@ import {
                     label="Package"
                     name="package"
                     value={data.package}
+                    onChange={handleChange}
+                />
+
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+                    fullWidth
+                    label="Footprint"
+                    name="footprint"
+                    value={data.footprint}
+                    onChange={handleChange}
+                />
+
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+                    fullWidth
+                    label="Value"
+                    name="component_value"
+                    value={data.component_value}
+                    onChange={handleChange}
+                />
+
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+                    fullWidth
+                    label="Manufacturer Part Number"
+                    name="manufacturer_part_number"
+                    value={data.manufacturer_part_number}
+                    onChange={handleChange}
+                />
+
+            </Grid>
+
+            <Grid size={12}>
+
+                <Divider sx={{ mt: 2, mb: 1 }}>
+
+                    Inventory
+
+                </Divider>
+
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+                    fullWidth
+                    type="number"
+                    label="Quantity"
+                    name="quantity"
+                    value={data.quantity}
+                    onChange={handleChange}
+                />
+
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+                    fullWidth
+                    type="number"
+                    label="Minimum Quantity"
+                    name="minimum_quantity"
+                    value={data.minimum_quantity}
+                    onChange={handleChange}
+                />
+
+            </Grid>
+
+            <Grid size={12}>
+
+                <Divider sx={{ mt: 2, mb: 1 }}>
+
+                    Additional Info
+
+                </Divider>
+
+            </Grid>
+
+            <Grid size={12}>
+
+                <TextField
+                    fullWidth
+                    label="Datasheet URL"
+                    name="datasheet_url"
+                    value={data.datasheet_url}
+                    onChange={handleChange}
+                />
+
+            </Grid>
+
+            <Grid size={12}>
+
+                <TextField
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    label="Notes"
+                    name="notes"
+                    value={data.notes}
                     onChange={handleChange}
                 />
 

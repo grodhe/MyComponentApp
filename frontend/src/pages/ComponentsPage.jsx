@@ -1,79 +1,142 @@
 import { useEffect, useState } from "react";
 
-import { getComponents } from "../services/componentService";
+import {
+    getComponents,
+    createComponent,
+    updateComponent,
+    deleteComponent
+} from "../services/componentService";
 
 import DataTable from "../components/common/DataTable";
 
 import CrudToolbar from "../components/common/CrudToolbar";
 
 import ComponentDialog from "../components/dialogs/ComponentDialog";
+import DeleteComponentDialog from "../components/dialogs/DeleteComponentDialog";
 
 function ComponentsPage() {
 
     const [components, setComponents] = useState([]);
     const [filter, setFilter] = useState("");
     const [selectedComponent, setSelectedComponent] = useState(null);
-    
+
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogMode, setDialogMode] = useState("add");
 
-    useEffect(() => {
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-        async function load() {
+    async function loadComponents() {
 
-            try {
+        try {
 
-                const data = await getComponents();
-                setComponents(data);
+            const data = await getComponents();
+            setComponents(data);
 
-            } catch (err) {
+        } catch (err) {
 
-                console.error("Failed to load components:", err);
-
-            }
+            console.error("Failed to load components:", err);
 
         }
 
-        load();
+    }
+
+    useEffect(() => {
+
+        loadComponents();
 
     }, []);
 
     function handleAdd() {
 
-         setDialogOpen(true);
+        setDialogMode("add");
+        setSelectedComponent(null);
+        setDialogOpen(true);
 
     }
 
     function handleClose() {
 
-       setDialogOpen(false);
+        setDialogOpen(false);
 
     }
-    function handleSave(component) {
 
-       console.log(component);
+    async function handleSave(component) {
 
-       setDialogOpen(false);
+        try {
+
+            if (dialogMode === "edit" && selectedComponent) {
+
+                await updateComponent(selectedComponent.id, component);
+
+            } else {
+
+                await createComponent(component);
+
+            }
+
+            setDialogOpen(false);
+            setSelectedComponent(null);
+
+            await loadComponents();
+
+        } catch (err) {
+
+            console.error("Failed to save component:", err);
+            alert(`Failed to save component: ${err.message}`);
+
+        }
 
     }
-    
+
     function handleEdit(component) {
 
-      if (!component)
-        return;
+        if (!component)
+            return;
 
-      console.log(component);
-
-       alert(`Edit ${component.part_number}`);
+        setSelectedComponent(component);
+        setDialogMode("edit");
+        setDialogOpen(true);
 
     }
-   function handleDelete(component) {
 
-	if (!component)
-        return;
-       alert(`Delete ${component.part_number}`);
+    function handleDelete(component) {
 
-   }
+        if (!component)
+            return;
 
+        setSelectedComponent(component);
+        setDeleteDialogOpen(true);
+
+    }
+
+    async function handleConfirmDelete() {
+
+        if (!selectedComponent)
+            return;
+
+        try {
+
+            await deleteComponent(selectedComponent.id);
+
+            setDeleteDialogOpen(false);
+            setSelectedComponent(null);
+
+            await loadComponents();
+
+        } catch (err) {
+
+            console.error("Failed to delete component:", err);
+            alert(`Failed to delete component: ${err.message}`);
+
+        }
+
+    }
+
+    function handleCancelDelete() {
+
+        setDeleteDialogOpen(false);
+
+    }
 
     const columns = [
 
@@ -157,60 +220,70 @@ function ComponentsPage() {
 
         <>
 
-	<CrudToolbar
+            <CrudToolbar
 
-		title="Components"
+                title="Components"
 
-		search={filter}
+                search={filter}
 
-		onSearchChange={setFilter}
+                onSearchChange={setFilter}
 
-		addLabel="Add Component"
+                addLabel="Add Component"
 
-		onAdd={handleAdd}
+                onAdd={handleAdd}
 
-		onEdit={() => handleEdit(selectedComponent)}
+                onEdit={() => handleEdit(selectedComponent)}
 
-		editDisabled={!selectedComponent}
+                editDisabled={!selectedComponent}
 
-		onDelete={() => handleDelete(selectedComponent)}
+                onDelete={() => handleDelete(selectedComponent)}
 
-		deleteDisabled={!selectedComponent}
+                deleteDisabled={!selectedComponent}
 
-	  />
+            />
 
+            <DataTable
 
-          <DataTable
+                rows={filteredComponents}
 
-  	     rows={filteredComponents}
+                columns={columns}
 
-             columns={columns}
+                onSelectionChange={setSelectedComponent}
 
-             onSelectionChange={setSelectedComponent}
+                onRowDoubleClick={(params) => handleEdit(params.row)}
 
-             onRowDoubleClick={(params) => handleEdit(params.row)}
+            />
 
-          />
-	 <ComponentDialog
+            <ComponentDialog
 
-	    open={dialogOpen}
+                open={dialogOpen}
 
-    	    mode="add"
+                mode={dialogMode}
 
-	    component={null}
+                component={dialogMode === "edit" ? selectedComponent : null}
 
-	    onClose={handleClose}
+                onClose={handleClose}
 
-	    onSave={handleSave}
+                onSave={handleSave}
 
-	/>
+            />
+
+            <DeleteComponentDialog
+
+                open={deleteDialogOpen}
+
+                component={selectedComponent}
+
+                onConfirm={handleConfirmDelete}
+
+                onCancel={handleCancelDelete}
+
+            />
 
         </>
 
     );
 
 }
-
-   
 
 export default ComponentsPage;

@@ -23,27 +23,27 @@ function App() {
                 />
 
                 <Route
-                    path="/manufacturersPage"
+                    path="/manufacturers"
                     element={<Manufacturers />}
                 />
 
                 <Route
-                    path="/categoriesPage"
+                    path="/categories"
                     element={<Categories />}
                 />
 
                 <Route
-                    path="/locationsPage"
+                    path="/locations"
                     element={<Locations />}
                 />
 
                 <Route
-                    path="/suppliersPage"
+                    path="/suppliers"
                     element={<Suppliers />}
                 />
 
                 <Route
-                    path="/projectsPage"
+                    path="/projects"
                     element={<Projects />}
                 />
 

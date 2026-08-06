@@ -1,38 +1,39 @@
-import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
+import ConfirmDialog from "../common/ConfirmDialog";
 
-import Header from "./components/layout/Header";
-import Navigation from "./components/layout/Navigation";
+function DeleteComponentDialog({
 
-const drawerWidth = 240;
+    open,
+    component,
 
-function Layout({ children }) {
+    onConfirm,
+    onCancel
+
+}) {
 
     return (
 
-        <Box sx={{ display: "flex" }}>
+        <ConfirmDialog
 
-            <Header />
+            open={open}
 
-            <Navigation />
-             <Box
-               component="main"
-               sx={{
-               flexGrow: 1,
-               bgcolor: "background.default",
-               p: 3
-               }}
-              >
-                <Toolbar />
+            title="Delete Component"
 
-                {children}
+            message={
+                component
+                    ? `Are you sure you want to delete "${component.part_number}"? This cannot be undone.`
+                    : "Are you sure you want to delete this component? This cannot be undone."
+            }
 
-            </Box>
+            confirmLabel="Delete"
+            confirmColor="error"
 
-        </Box>
+            onConfirm={onConfirm}
+            onCancel={onCancel}
+
+        />
 
     );
 
 }
 
-export default Layout;
+export default DeleteComponentDialog;
