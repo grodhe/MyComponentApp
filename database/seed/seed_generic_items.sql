@@ -1,5 +1,3 @@
-SET search_path = compo;
-BEGIN;
 -- Test data for generic_items and project_generic_items.
 --
 -- Safe to run more than once: each INSERT is guarded by a NOT EXISTS check,
@@ -155,4 +153,3 @@ WHERE (SELECT id FROM projects ORDER BY id LIMIT 1 OFFSET 1) IS NOT NULL
       WHERE project_id = (SELECT id FROM projects ORDER BY id LIMIT 1 OFFSET 1)
         AND generic_item_id = (SELECT id FROM generic_items WHERE name = 'Cable Tie 100mm')
   );
-commit;

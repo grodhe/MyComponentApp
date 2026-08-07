@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
     getProjects,
@@ -12,7 +13,12 @@ import CrudToolbar from "../components/common/CrudToolbar";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import ProjectDialog from "../components/dialogs/ProjectDialog";
 
+import Button from "@mui/material/Button";
+import FolderOpenIcon from "@mui/icons-material/FolderOpen";
+
 function ProjectsPage() {
+
+    const navigate = useNavigate();
 
     const [projects, setProjects] = useState([]);
     const [filter, setFilter] = useState("");
@@ -60,6 +66,15 @@ function ProjectsPage() {
         setSelectedProject(project);
         setDialogMode("edit");
         setDialogOpen(true);
+
+    }
+
+    function handleOpenDetail(project) {
+
+        if (!project)
+            return;
+
+        navigate(`/projects/${project.id}`);
 
     }
 
@@ -219,6 +234,19 @@ function ProjectsPage() {
 
                 deleteDisabled={!selectedProject}
 
+                extraActions={
+
+                    <Button
+                        variant="outlined"
+                        startIcon={<FolderOpenIcon />}
+                        onClick={() => handleOpenDetail(selectedProject)}
+                        disabled={!selectedProject}
+                    >
+                        Open Project
+                    </Button>
+
+                }
+
             />
 
             <DataTable
@@ -229,7 +257,7 @@ function ProjectsPage() {
 
                 onSelectionChange={setSelectedProject}
 
-                onRowDoubleClick={(params) => handleEdit(params.row)}
+                onRowDoubleClick={(params) => handleOpenDetail(params.row)}
 
             />
 

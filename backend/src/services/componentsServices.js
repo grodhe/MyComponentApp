@@ -1,4 +1,5 @@
 const repository = require("../repositories/componentsRepository");
+const { translatePgError } = require("../utils/pgErrors");
 
 // Converts "" -> null for FK fields and coerces quantity fields to numbers,
 // so the DB never sees an empty string where it expects an integer.
@@ -81,12 +82,22 @@ async function updateComponent(id, data) {
 
 async function deleteComponent(id) {
 
-    const deleted = await repository.remove(id);
+    try {
 
-    if (!deleted) {
-        const error = new Error(`Component ${id} not found`);
-        error.status = 404;
-        throw error;
+        const deleted = await repository.remove(id);
+
+        if (!deleted) {
+            const error = new Error(`Component ${id} not found`);
+            error.status = 404;
+            throw error;
+        }
+
+    } catch (err) {
+
+        throw translatePgError(err, {
+            referenceMessage: "This component is used in one or more projects and can't be deleted while it's still referenced there."
+        });
+
     }
 
 }

@@ -26,7 +26,9 @@ function CrudToolbar({
     editDisabled = true,
 
     onDelete,
-    deleteDisabled = true
+    deleteDisabled = true,
+
+    extraActions = null
 
 }) {
 
@@ -54,6 +56,8 @@ function CrudToolbar({
                     direction="row"
                     spacing={1}
                 >
+
+                    {extraActions}
 
                     <Button
                         variant="contained"

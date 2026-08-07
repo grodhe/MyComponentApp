@@ -18,7 +18,7 @@ function Header() {
 
                 <Typography variant="h6">
 
-                    📦 Component Inventory
+                    📦 Hobbyist Inventory
 
                 </Typography>
 

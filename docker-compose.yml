@@ -1,0 +1,51 @@
+services:
+
+  frontend:
+
+    container_name: mycomponent-frontend
+
+    build:
+      context: ./frontend
+
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      - backend
+
+    networks:
+      - component-network
+
+  backend:
+
+    container_name: mycomponent-backend
+
+    build:
+      context: ./backend
+
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    ports:
+      - "3001:3001"
+
+    volumes:
+
+      - ./data:/data
+
+      - ./logs/backend:/app/logs
+
+    networks:
+      - component-network
+
+networks:
+
+  component-network:
+    driver: bridge

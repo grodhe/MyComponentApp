@@ -20,6 +20,11 @@ const menu = [
     },
 
     {
+        text: "Generic Items",
+        path: "/generic-items"
+    },
+
+    {
         text: "Manufacturers",
         path: "/manufacturers"
     },

@@ -1,7 +1,65 @@
-set search_path = "compo";
-BEGIN;
+-- Best-guess schema, reverse-engineered from the columns your repositories
+-- already query. Adjust types/constraints to match your real database if
+-- one already exists -- this is only meant to get a fresh dev DB running.
 
-CREATE TABLE project_status
+CREATE TABLE IF NOT EXISTS manufacturers (
+    id          SERIAL PRIMARY KEY,
+    name        TEXT NOT NULL,
+    website     TEXT,
+    notes       TEXT
+);
+
+CREATE TABLE IF NOT EXISTS categories (
+    id          SERIAL PRIMARY KEY,
+    name        TEXT NOT NULL,
+    description TEXT
+);
+
+CREATE TABLE IF NOT EXISTS locations (
+    id          SERIAL PRIMARY KEY,
+    name        TEXT NOT NULL,
+    description TEXT
+);
+
+CREATE TABLE IF NOT EXISTS suppliers (
+    id          SERIAL PRIMARY KEY,
+    name        TEXT NOT NULL,
+    website     TEXT,
+    country     TEXT,
+    currency    TEXT,
+    notes       TEXT
+);
+
+CREATE TABLE IF NOT EXISTS components (
+    id                          SERIAL PRIMARY KEY,
+    part_number                 TEXT NOT NULL,
+    part_name                   TEXT,
+    description                 TEXT,
+    manufacturer_part_number    TEXT,
+    package                     TEXT,
+    footprint                   TEXT,
+    component_value             TEXT,
+    quantity                    INTEGER NOT NULL DEFAULT 0,
+    minimum_quantity            INTEGER NOT NULL DEFAULT 0,
+    datasheet_url               TEXT,
+    notes                       TEXT,
+    manufacturer_id             INTEGER REFERENCES manufacturers(id) ON DELETE SET NULL,
+    category_id                 INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+    location_id                 INTEGER REFERENCES locations(id) ON DELETE SET NULL,
+    created_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at                  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_components_manufacturer ON components(manufacturer_id);
+CREATE INDEX IF NOT EXISTS idx_components_category ON components(category_id);
+CREATE INDEX IF NOT EXISTS idx_components_location ON components(location_id);
+
+-- Below: your actual project tables, as provided (ProjectTables.sql). Only
+-- `projects` and `project_status` are wired up in the app so far -- the
+-- BOM (project_components), project_documents, project_repositories and
+-- project_tasks tables are here for reference and ready for a future pass.
+
+CREATE TABLE IF NOT EXISTS project_status
 (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
@@ -12,8 +70,7 @@ CREATE TABLE project_status
     display_order INTEGER DEFAULT 0
 );
 
-
-CREATE TABLE projects
+CREATE TABLE IF NOT EXISTS projects
 (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
@@ -44,7 +101,7 @@ CREATE TABLE projects
         REFERENCES project_status(id)
 );
 
-CREATE TABLE project_components
+CREATE TABLE IF NOT EXISTS project_components
 (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
@@ -66,10 +123,13 @@ CREATE TABLE project_components
     CONSTRAINT fk_pc_component
         FOREIGN KEY(component_id)
         REFERENCES components(id)
-        ON DELETE RESTRICT
+        ON DELETE RESTRICT,
+
+    CONSTRAINT uq_project_component
+        UNIQUE(project_id, component_id)
 );
 
-CREATE TABLE project_documents
+CREATE TABLE IF NOT EXISTS project_documents
 (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
@@ -88,10 +148,13 @@ CREATE TABLE project_documents
     CONSTRAINT fk_project_document
         FOREIGN KEY(project_id)
         REFERENCES projects(id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+
+    CONSTRAINT uq_project_document
+        UNIQUE(project_id, document_name)
 );
 
-CREATE TABLE project_repositories
+CREATE TABLE IF NOT EXISTS project_repositories
 (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
@@ -108,11 +171,13 @@ CREATE TABLE project_repositories
     CONSTRAINT fk_project_repository
         FOREIGN KEY(project_id)
         REFERENCES projects(id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+
+    CONSTRAINT uq_project_repository
+        UNIQUE(project_id, repository_name)
 );
 
-
-CREATE TABLE project_tasks
+CREATE TABLE IF NOT EXISTS project_tasks
 (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
@@ -133,26 +198,11 @@ CREATE TABLE project_tasks
     CONSTRAINT fk_project_task
         FOREIGN KEY(project_id)
         REFERENCES projects(id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+
+    CONSTRAINT uq_project_task
+        UNIQUE(project_id, title)
 );
-
-
-
-ALTER TABLE compo.project_components
-ADD CONSTRAINT uq_project_component
-UNIQUE(project_id, component_id);
-
-ALTER TABLE compo.project_repositories
-ADD CONSTRAINT uq_project_repository
-UNIQUE(project_id, repository_name);
-
-ALTER TABLE compo.project_documents
-ADD CONSTRAINT uq_project_document
-UNIQUE(project_id, document_name);
-
-ALTER TABLE compo.project_tasks
-ADD CONSTRAINT uq_project_task
-UNIQUE(project_id, title);
 
 -- Generic parts catalog: anything a build needs that isn't a "component"
 -- in the electronics sense -- enclosures, screws, cable, adhesive, etc.
@@ -215,5 +265,3 @@ CREATE TABLE IF NOT EXISTS project_generic_items
     CONSTRAINT uq_project_generic_item
         UNIQUE(project_id, generic_item_id)
 );
-
-COMMIT;
