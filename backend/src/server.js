@@ -24,6 +24,10 @@ const locationsRoutes = require("./routes/locationsRoutes");
 
 const suppliersRoutes = require("./routes/suppliersRoutes");
 
+const projectsRoutes = require("./routes/projectsRoutes");
+
+const projectStatusRoutes = require("./routes/projectStatusRoutes");
+
 
 app.use("/api/components", componentRoutes);
 
@@ -34,6 +38,10 @@ app.use("/api/categories", categoriesRoutes);
 app.use("/api/locations", locationsRoutes);
 
 app.use("/api/suppliers", suppliersRoutes);
+
+app.use("/api/projects", projectsRoutes);
+
+app.use("/api/project-statuses", projectStatusRoutes);
 
 const PORT = process.env.PORT || 3001;
 
