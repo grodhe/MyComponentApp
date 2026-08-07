@@ -1,7 +1,5 @@
 import { AppBar, Toolbar, Typography } from "@mui/material";
 
-const drawerWidth = 240;
-
 function Header() {
 
     return (
@@ -9,8 +7,7 @@ function Header() {
         <AppBar
             position="fixed"
             sx={{
-                width: `calc(100% - ${drawerWidth}px)`,
-                ml: `${drawerWidth}px`
+                zIndex: (theme) => theme.zIndex.drawer + 1
             }}
         >
 
