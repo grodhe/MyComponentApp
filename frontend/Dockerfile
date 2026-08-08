@@ -8,7 +8,9 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build
+ARG VITE_MODE=production
+
+RUN npm run build -- --mode ${VITE_MODE}
 
 RUN npm install -g serve
 

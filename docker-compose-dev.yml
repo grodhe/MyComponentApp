@@ -1,0 +1,68 @@
+services:
+
+  nginx:
+    image: nginx:alpine
+    container_name: mycomponent-nginx
+
+    ports:
+      - "3000:80"
+
+    volumes:
+      - ./nginx/nginx-dev.conf:/etc/nginx/nginx.conf:ro
+
+    depends_on:
+      - frontend
+      - backend
+
+    networks:
+      - component-network
+
+
+  frontend:
+    container_name: mycomponent-frontend
+
+    build:
+      context: ./frontend
+      args:
+        VITE_MODE: development
+
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    expose:
+      - "3000"
+
+    depends_on:
+      - backend
+
+    networks:
+      - component-network
+
+
+  backend:
+    container_name: mycomponent-backend
+
+    build:
+      context: ./backend
+
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    ports:
+      - "3001:3001"
+
+    volumes:
+      - ./data:/data
+      - ./logs/backend:/app/logs
+
+    networks:
+      - component-network
+
+
+networks:
+  component-network:
+    driver: bridge
