@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 
+import { Button } from "@mui/material";
+import PrintIcon from "@mui/icons-material/Print";
+
 import {
     getLocations,
     createLocation,
@@ -11,6 +14,7 @@ import DataTable from "../components/common/DataTable";
 import CrudToolbar from "../components/common/CrudToolbar";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import LocationDialog from "../components/dialogs/LocationDialog";
+import LabelPrintArea from "../components/common/LabelPrintArea";
 
 function LocationsPage() {
 
@@ -136,6 +140,15 @@ function LocationsPage() {
 
     }
 
+    function handlePrint() {
+
+        if (!selectedLocation)
+            return;
+
+        window.print();
+
+    }
+
     const columns = [
 
         {
@@ -189,6 +202,19 @@ function LocationsPage() {
 
                 deleteDisabled={!selectedLocation}
 
+                extraActions={
+
+                    <Button
+                        variant="outlined"
+                        startIcon={<PrintIcon />}
+                        onClick={handlePrint}
+                        disabled={!selectedLocation}
+                    >
+                        Print Label
+                    </Button>
+
+                }
+
             />
 
             <DataTable
@@ -235,6 +261,11 @@ function LocationsPage() {
                 onConfirm={handleConfirmDelete}
                 onCancel={handleCancelDelete}
 
+            />
+
+            <LabelPrintArea
+                title={selectedLocation?.name}
+                subtitle={selectedLocation?.description}
             />
 
         </>

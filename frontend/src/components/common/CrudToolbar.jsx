@@ -57,8 +57,6 @@ function CrudToolbar({
                     spacing={1}
                 >
 
-                    {extraActions}
-
                     <Button
                         variant="contained"
                         startIcon={<AddIcon />}
@@ -85,6 +83,8 @@ function CrudToolbar({
                     >
                         Delete
                     </Button>
+
+                    {extraActions}
 
                 </Stack>
 

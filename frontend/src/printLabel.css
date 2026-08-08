@@ -1,0 +1,40 @@
+/*
+ * Label printing, e.g. for a Brother QL-700 loaded with DK-22223
+ * (50mm continuous tape).
+ *
+ * #label-print-area is portaled directly onto document.body (see
+ * LabelPrintArea.jsx), as a SIBLING of #root, not nested inside it. That
+ * matters here: during print we hide #root entirely rather than just make
+ * it invisible, so its layout height collapses to zero and the printed
+ * page is exactly the label's size -- no extra blank pages from the rest
+ * of the app's height still being in the document flow.
+ *
+ * If you switch to a different DK roll, update the width/height here
+ * (and in LabelPrintArea.jsx) to match its physical dimensions.
+ */
+
+#label-print-area {
+    display: none;
+}
+
+@media print {
+
+    @page {
+        size: 50mm 30mm;
+        margin: 0;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+
+    #root {
+        display: none !important;
+    }
+
+    #label-print-area {
+        display: block !important;
+    }
+
+}
