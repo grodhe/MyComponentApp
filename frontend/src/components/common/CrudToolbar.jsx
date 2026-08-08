@@ -28,7 +28,8 @@ function CrudToolbar({
     onDelete,
     deleteDisabled = true,
 
-    extraActions = null
+    extraActions = null,
+    trailingActions = null
 
 }) {
 
@@ -57,6 +58,8 @@ function CrudToolbar({
                     spacing={1}
                 >
 
+                    {extraActions}
+
                     <Button
                         variant="contained"
                         startIcon={<AddIcon />}
@@ -84,7 +87,7 @@ function CrudToolbar({
                         Delete
                     </Button>
 
-                    {extraActions}
+                    {trailingActions}
 
                 </Stack>
 

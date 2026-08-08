@@ -202,7 +202,7 @@ function LocationsPage() {
 
                 deleteDisabled={!selectedLocation}
 
-                extraActions={
+                trailingActions={
 
                     <Button
                         variant="outlined"
