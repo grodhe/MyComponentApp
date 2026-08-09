@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "@mui/material";
-import PrintIcon from "@mui/icons-material/Print";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 import {
     getComponents,
@@ -16,9 +17,10 @@ import CrudToolbar from "../components/common/CrudToolbar";
 
 import ComponentDialog from "../components/dialogs/ComponentDialog";
 import DeleteComponentDialog from "../components/dialogs/DeleteComponentDialog";
-import LabelPrintArea from "../components/common/LabelPrintArea";
 
 function ComponentsPage() {
+
+    const navigate = useNavigate();
 
     const [components, setComponents] = useState([]);
     const [filter, setFilter] = useState("");
@@ -64,6 +66,15 @@ function ComponentsPage() {
 
     }
 
+    function handleOpenDetail(component) {
+
+        if (!component)
+            return;
+
+        navigate(`/components/${component.id}`);
+
+    }
+
     async function handleSave(component) {
 
         try {
@@ -89,17 +100,6 @@ function ComponentsPage() {
             alert(`Failed to save component: ${err.message}`);
 
         }
-
-    }
-
-    function handleEdit(component) {
-
-        if (!component)
-            return;
-
-        setSelectedComponent(component);
-        setDialogMode("edit");
-        setDialogOpen(true);
 
     }
 
@@ -139,15 +139,6 @@ function ComponentsPage() {
     function handleCancelDelete() {
 
         setDeleteDialogOpen(false);
-
-    }
-
-    function handlePrint() {
-
-        if (!selectedComponent)
-            return;
-
-        window.print();
 
     }
 
@@ -210,6 +201,10 @@ function ComponentsPage() {
 
     ];
 
+    // Search is one of the primary ways of finding a component here, so
+    // this covers every field someone might actually remember/search by --
+    // not just part number/name. Plain substring matching (not "starts
+    // with") so a partial fragment like "BME" finds both BME280 and BME680.
     const filteredComponents = components.filter(component => {
 
         const text = filter.toLowerCase();
@@ -218,9 +213,12 @@ function ComponentsPage() {
 
             (component.part_number ?? "").toLowerCase().includes(text) ||
             (component.part_name ?? "").toLowerCase().includes(text) ||
-            (component.description ?? "").toLowerCase().includes(text) ||
             (component.manufacturer ?? "").toLowerCase().includes(text) ||
+            (component.manufacturer_part_number ?? "").toLowerCase().includes(text) ||
+            (component.description ?? "").toLowerCase().includes(text) ||
             (component.package ?? "").toLowerCase().includes(text) ||
+            (component.footprint ?? "").toLowerCase().includes(text) ||
+            (component.notes ?? "").toLowerCase().includes(text) ||
             (component.component_value ?? "").toLowerCase().includes(text) ||
             (component.category ?? "").toLowerCase().includes(text) ||
             (component.location ?? "").toLowerCase().includes(text)
@@ -245,23 +243,21 @@ function ComponentsPage() {
 
                 onAdd={handleAdd}
 
-                onEdit={() => handleEdit(selectedComponent)}
-
-                editDisabled={!selectedComponent}
+                showEdit={false}
 
                 onDelete={() => handleDelete(selectedComponent)}
 
                 deleteDisabled={!selectedComponent}
 
-                trailingActions={
+                extraActions={
 
                     <Button
                         variant="outlined"
-                        startIcon={<PrintIcon />}
-                        onClick={handlePrint}
+                        startIcon={<OpenInNewIcon />}
+                        onClick={() => handleOpenDetail(selectedComponent)}
                         disabled={!selectedComponent}
                     >
-                        Print Label
+                        Open Component
                     </Button>
 
                 }
@@ -276,7 +272,7 @@ function ComponentsPage() {
 
                 onSelectionChange={setSelectedComponent}
 
-                onRowDoubleClick={(params) => handleEdit(params.row)}
+                onRowDoubleClick={(params) => handleOpenDetail(params.row)}
 
             />
 
@@ -304,14 +300,6 @@ function ComponentsPage() {
 
                 onCancel={handleCancelDelete}
 
-            />
-
-            <LabelPrintArea
-                lines={[
-                    selectedComponent?.part_number,
-                    selectedComponent?.part_name,
-                    selectedComponent?.description
-                ]}
             />
 
         </>

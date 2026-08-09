@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 
 import ComponentsPage from "./pages/ComponentsPage";
+import ComponentDetail from "./pages/ComponentDetailPage";
 import GenericItems from "./pages/GenericItemsPage";
 import Manufacturers from "./pages/ManufacturersPage";
 import Categories from "./pages/CategoriesPage";
@@ -22,6 +23,11 @@ function App() {
                 <Route
                     path="/"
                     element={<ComponentsPage />}
+                />
+
+                <Route
+                    path="/components/:id"
+                    element={<ComponentDetail />}
                 />
 
                 <Route

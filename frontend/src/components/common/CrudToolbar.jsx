@@ -22,6 +22,7 @@ function CrudToolbar({
     addLabel = "Add",
     onAdd,
 
+    showEdit = true,
     onEdit,
     editDisabled = true,
 
@@ -68,14 +69,18 @@ function CrudToolbar({
                         {addLabel}
                     </Button>
 
-                    <Button
-                        variant="outlined"
-                        startIcon={<EditIcon />}
-                        onClick={onEdit}
-                        disabled={editDisabled}
-                    >
-                        Edit
-                    </Button>
+                    {showEdit && (
+
+                        <Button
+                            variant="outlined"
+                            startIcon={<EditIcon />}
+                            onClick={onEdit}
+                            disabled={editDisabled}
+                        >
+                            Edit
+                        </Button>
+
+                    )}
 
                     <Button
                         variant="outlined"
