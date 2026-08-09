@@ -5,7 +5,8 @@ then
    mkdir logs
    cd logs/
    mkdir backend
-cd /volume1/MyDockerImages/MyComponentApp
+   cd /volume1/MyDockerImages/MyComponentApp
+   cp   /volume1/MyDockerImages/bck/.env  /volume1/MyDockerImages/MyComponentApp/.env
 elif [ "$1" = "-help" ]
 then
     echo "First tim use -f as a parameter!"

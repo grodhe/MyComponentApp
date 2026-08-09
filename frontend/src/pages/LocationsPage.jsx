@@ -264,8 +264,7 @@ function LocationsPage() {
             />
 
             <LabelPrintArea
-                title={selectedLocation?.name}
-                subtitle={selectedLocation?.description}
+                lines={[selectedLocation?.name, selectedLocation?.description]}
             />
 
         </>

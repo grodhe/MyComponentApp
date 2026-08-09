@@ -13,12 +13,20 @@ import { Box, Typography } from "@mui/material";
 // #root's full height in the document flow even while invisible, which is
 // why label printing was producing extra blank pages.)
 //
+// `lines` is an ordered array of text to print, one per row. The first line
+// is styled as the title (bold, larger); any further lines are printed
+// smaller underneath it, in order. Pass e.g. [name, description] for a
+// 2-line label or [partNumber, partName, description] for a 3-line one.
+// Empty/falsy lines are skipped automatically.
+//
 // To print a label: render this with the item to print, then call
 // window.print(). The user picks "Brother QL-700" from the print dialog
 // (do this once and Windows/your browser will usually remember it).
-function LabelPrintArea({ title, subtitle }) {
+function LabelPrintArea({ lines = [] }) {
 
-    if (!title) {
+    const content = lines.filter(Boolean);
+
+    if (content.length === 0) {
         return null;
     }
 
@@ -38,31 +46,22 @@ function LabelPrintArea({ title, subtitle }) {
                 }}
             >
 
-                <Typography
-                    sx={{
-                        fontSize: "14pt",
-                        fontWeight: "bold",
-                        lineHeight: 1.15,
-                        wordBreak: "break-word"
-                    }}
-                >
-                    {title}
-                </Typography>
-
-                {subtitle && (
+                {content.map((line, index) => (
 
                     <Typography
+                        key={index}
                         sx={{
-                            fontSize: "9pt",
-                            lineHeight: 1.2,
-                            mt: "1mm",
+                            fontSize: index === 0 ? "13pt" : "9pt",
+                            fontWeight: index === 0 ? "bold" : "normal",
+                            lineHeight: 1.15,
+                            mt: index === 0 ? 0 : "0.7mm",
                             wordBreak: "break-word"
                         }}
                     >
-                        {subtitle}
+                        {line}
                     </Typography>
 
-                )}
+                ))}
 
             </Box>
 

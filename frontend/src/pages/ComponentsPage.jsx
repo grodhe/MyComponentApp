@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 
+import { Button } from "@mui/material";
+import PrintIcon from "@mui/icons-material/Print";
+
 import {
     getComponents,
     createComponent,
@@ -13,6 +16,7 @@ import CrudToolbar from "../components/common/CrudToolbar";
 
 import ComponentDialog from "../components/dialogs/ComponentDialog";
 import DeleteComponentDialog from "../components/dialogs/DeleteComponentDialog";
+import LabelPrintArea from "../components/common/LabelPrintArea";
 
 function ComponentsPage() {
 
@@ -138,6 +142,15 @@ function ComponentsPage() {
 
     }
 
+    function handlePrint() {
+
+        if (!selectedComponent)
+            return;
+
+        window.print();
+
+    }
+
     const columns = [
 
         {
@@ -240,6 +253,19 @@ function ComponentsPage() {
 
                 deleteDisabled={!selectedComponent}
 
+                trailingActions={
+
+                    <Button
+                        variant="outlined"
+                        startIcon={<PrintIcon />}
+                        onClick={handlePrint}
+                        disabled={!selectedComponent}
+                    >
+                        Print Label
+                    </Button>
+
+                }
+
             />
 
             <DataTable
@@ -278,6 +304,14 @@ function ComponentsPage() {
 
                 onCancel={handleCancelDelete}
 
+            />
+
+            <LabelPrintArea
+                lines={[
+                    selectedComponent?.part_number,
+                    selectedComponent?.part_name,
+                    selectedComponent?.description
+                ]}
             />
 
         </>
