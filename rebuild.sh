@@ -10,7 +10,7 @@ elif [ "$1" = "-help" ]
 then
     echo "First tim use -f as a parameter!"
 else
-        echo "Not"
+        echo "Not building"
 fi
 sudo docker compose down
 sudo docker compose -f docker-compose-prod.yml up --build -d
