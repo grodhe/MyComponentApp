@@ -18,6 +18,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutlined";
 import PrintIcon from "@mui/icons-material/Print";
 
 import { getComponent, updateComponent } from "../services/componentService";
+import { PUBLIC_APP_BASE_URL } from "../config";
 
 import ComponentDialog from "../components/dialogs/ComponentDialog";
 import AddStockDialog from "../components/dialogs/AddStockDialog";
@@ -333,6 +334,7 @@ function ComponentDetailPage() {
                     component?.part_name,
                     component?.description
                 ]}
+                qrValue={component ? `${PUBLIC_APP_BASE_URL}/components/${component.id}` : null}
             />
 
         </Box>

@@ -26,6 +26,7 @@ import {
 } from "../services/genericItemService";
 
 import { buildFullLocationTree } from "../utils/locationTree";
+import { PUBLIC_APP_BASE_URL } from "../config";
 
 import LocationTree from "../components/locations/LocationTree";
 import ConfirmDialog from "../components/common/ConfirmDialog";
@@ -427,6 +428,7 @@ function LocationsPage() {
 
             <LabelPrintArea
                 lines={[printTarget?.name, printTarget?.description]}
+                qrValue={printTarget ? `${PUBLIC_APP_BASE_URL}/location/${printTarget.id}` : null}
             />
 
         </Box>

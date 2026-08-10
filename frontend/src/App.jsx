@@ -8,6 +8,7 @@ import GenericItems from "./pages/GenericItemsPage";
 import Manufacturers from "./pages/ManufacturersPage";
 import Categories from "./pages/CategoriesPage";
 import Locations from "./pages/LocationsPage";
+import LocationDetail from "./pages/LocationDetailPage";
 import Suppliers from "./pages/SuppliersPage";
 import Projects from "./pages/ProjectsPage";
 import ProjectDetail from "./pages/ProjectDetailPage";
@@ -48,6 +49,11 @@ function App() {
                 <Route
                     path="/locations"
                     element={<Locations />}
+                />
+
+                <Route
+                    path="/location/:id"
+                    element={<LocationDetail />}
                 />
 
                 <Route
