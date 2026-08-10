@@ -25,7 +25,7 @@ import {
     deleteGenericItem
 } from "../services/genericItemService";
 
-import { buildFullLocationTree } from "../utils/locationTree";
+import { buildFullLocationTree, getLocationPath } from "../utils/locationTree";
 import { PUBLIC_APP_BASE_URL } from "../config";
 
 import LocationTree from "../components/locations/LocationTree";
@@ -426,8 +426,19 @@ function LocationsPage() {
 
             />
 
+            {/*
+                First line is the full breadcrumb (e.g. "Cabinet 1 / Drawer
+                A1"), not just the location's own name -- a label reading
+                just "Drawer A1" doesn't tell you which cabinet it's from
+                if it's ever off the shelf, and the QR only encodes an id,
+                not the path, so the printed text is the only place that
+                context shows up.
+            */}
             <LabelPrintArea
-                lines={[printTarget?.name, printTarget?.description]}
+                lines={[
+                    printTarget ? getLocationPath(locations, printTarget.id) : null,
+                    printTarget?.description
+                ]}
                 qrValue={printTarget ? `${PUBLIC_APP_BASE_URL}/location/${printTarget.id}` : null}
             />
 

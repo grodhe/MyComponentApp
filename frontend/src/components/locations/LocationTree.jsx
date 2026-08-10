@@ -49,13 +49,12 @@ function AddMenu({ onAddSubLocation, onAddComponent, onAddGenericItem }) {
 
             <Tooltip title="Add">
                 <IconButton
-                    size="small"
                     onClick={(event) => {
                         event.stopPropagation();
                         setAnchorEl(event.currentTarget);
                     }}
                 >
-                    <AddIcon fontSize="small" />
+                    <AddIcon />
                 </IconButton>
             </Tooltip>
 
@@ -124,6 +123,10 @@ function LocationTreeNode({ node, depth, actions }) {
                 disablePadding
                 secondaryAction={
 
+                    // Default (medium) size icon buttons -- these were
+                    // "small" before and hard to make out/tap, especially
+                    // the print icon. Row action bar's `pr` below is sized
+                    // to fit up to 4 of these across.
                     <Stack
                         direction="row"
                         spacing={0.5}
@@ -136,10 +139,9 @@ function LocationTreeNode({ node, depth, actions }) {
 
                                 <Tooltip title="Print Label">
                                     <IconButton
-                                        size="small"
                                         onClick={() => actions.onPrintLocation(node.raw)}
                                     >
-                                        <PrintIcon fontSize="small" />
+                                        <PrintIcon />
                                     </IconButton>
                                 </Tooltip>
 
@@ -151,19 +153,17 @@ function LocationTreeNode({ node, depth, actions }) {
 
                                 <Tooltip title="Edit">
                                     <IconButton
-                                        size="small"
                                         onClick={() => actions.onEditLocation(node.raw)}
                                     >
-                                        <EditIcon fontSize="small" />
+                                        <EditIcon />
                                     </IconButton>
                                 </Tooltip>
 
                                 <Tooltip title="Delete">
                                     <IconButton
-                                        size="small"
                                         onClick={() => actions.onDeleteLocation(node.raw)}
                                     >
-                                        <DeleteIcon fontSize="small" />
+                                        <DeleteIcon />
                                     </IconButton>
                                 </Tooltip>
 
@@ -177,19 +177,17 @@ function LocationTreeNode({ node, depth, actions }) {
 
                                 <Tooltip title="Edit">
                                     <IconButton
-                                        size="small"
                                         onClick={() => actions.onEditComponent(node.raw)}
                                     >
-                                        <EditIcon fontSize="small" />
+                                        <EditIcon />
                                     </IconButton>
                                 </Tooltip>
 
                                 <Tooltip title="Delete">
                                     <IconButton
-                                        size="small"
                                         onClick={() => actions.onDeleteComponent(node.raw)}
                                     >
-                                        <DeleteIcon fontSize="small" />
+                                        <DeleteIcon />
                                     </IconButton>
                                 </Tooltip>
 
@@ -203,19 +201,17 @@ function LocationTreeNode({ node, depth, actions }) {
 
                                 <Tooltip title="Edit">
                                     <IconButton
-                                        size="small"
                                         onClick={() => actions.onEditGenericItem(node.raw)}
                                     >
-                                        <EditIcon fontSize="small" />
+                                        <EditIcon />
                                     </IconButton>
                                 </Tooltip>
 
                                 <Tooltip title="Delete">
                                     <IconButton
-                                        size="small"
                                         onClick={() => actions.onDeleteGenericItem(node.raw)}
                                     >
-                                        <DeleteIcon fontSize="small" />
+                                        <DeleteIcon />
                                     </IconButton>
                                 </Tooltip>
 
@@ -230,7 +226,7 @@ function LocationTreeNode({ node, depth, actions }) {
 
                 <ListItemButton
                     onClick={handleRowClick}
-                    sx={{ pl: 1 + depth * 2.5, pr: 16 }}
+                    sx={{ pl: 1 + depth * 2.5, pr: 22 }}
                 >
 
                     {node.nodeType === "location" && hasChildren ? (
