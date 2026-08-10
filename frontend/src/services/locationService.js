@@ -12,6 +12,12 @@ export function getLocation(id) {
 
 }
 
+export function getLocationContents(id) {
+
+    return api.get(`/locations/${id}/contents`);
+
+}
+
 export function createLocation(data) {
 
     return api.post("/locations", data);

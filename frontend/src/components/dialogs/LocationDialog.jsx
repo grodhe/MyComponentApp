@@ -7,12 +7,20 @@ import {
     DialogActions,
     Grid,
     TextField,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
     Button
 } from "@mui/material";
 
+import { getLocations } from "../../services/locationService";
+import { getDescendantIds, getLocationPath } from "../../utils/locationTree";
+
 const emptyLocation = {
     name: "",
-    description: ""
+    description: "",
+    parent_id: ""
 };
 
 function LocationDialog({
@@ -23,6 +31,10 @@ function LocationDialog({
 
     location,
 
+    // Preselects the parent when adding a new location from inside a
+    // parent's detail view (e.g. "Add Sub-Location" on Cabinet A).
+    defaultParentId = null,
+
     onClose,
 
     onSave
@@ -30,19 +42,37 @@ function LocationDialog({
 }) {
 
     const [data, setData] = useState(emptyLocation);
+    const [allLocations, setAllLocations] = useState([]);
 
     useEffect(() => {
 
         if (!open)
             return;
 
-        if (mode === "edit" && location) {
-            setData(location);
-        } else {
-            setData(emptyLocation);
+        async function loadLocations() {
+
+            try {
+
+                const locations = await getLocations();
+                setAllLocations(locations);
+
+            } catch (err) {
+
+                console.error("Failed to load locations:", err);
+
+            }
+
         }
 
-    }, [open, mode, location]);
+        if (mode === "edit" && location) {
+            setData({ ...emptyLocation, ...location });
+        } else {
+            setData({ ...emptyLocation, parent_id: defaultParentId ?? "" });
+        }
+
+        loadLocations();
+
+    }, [open, mode, location, defaultParentId]);
 
     function handleChange(event) {
 
@@ -60,6 +90,14 @@ function LocationDialog({
         onSave(data);
 
     }
+
+    // A location can't become its own parent, and can't become the parent
+    // of one of its own descendants either (that would create a cycle).
+    const excludedIds = mode === "edit" && location
+        ? new Set([location.id, ...getDescendantIds(allLocations, location.id)])
+        : new Set();
+
+    const parentOptions = allLocations.filter((loc) => !excludedIds.has(loc.id));
 
     return (
 
@@ -95,6 +133,40 @@ function LocationDialog({
                             value={data.name}
                             onChange={handleChange}
                         />
+
+                    </Grid>
+
+                    <Grid size={12}>
+
+                        <FormControl fullWidth>
+
+                            <InputLabel>Parent Location</InputLabel>
+
+                            <Select
+                                label="Parent Location"
+                                name="parent_id"
+                                value={data.parent_id ?? ""}
+                                onChange={handleChange}
+                            >
+
+                                <MenuItem value="">
+                                    <em>None (top-level)</em>
+                                </MenuItem>
+
+                                {parentOptions.map((loc) => (
+
+                                    <MenuItem
+                                        key={loc.id}
+                                        value={loc.id}
+                                    >
+                                        {getLocationPath(allLocations, loc.id)}
+                                    </MenuItem>
+
+                                ))}
+
+                            </Select>
+
+                        </FormControl>
 
                     </Grid>
 

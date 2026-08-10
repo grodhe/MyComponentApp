@@ -1,17 +1,28 @@
 const { pool, schema } = require("./baseRepository");
 
+const SELECT_FIELDS = `
+    l.id,
+    l.name,
+    l.description,
+
+    l.parent_id,
+    p.name AS parent_name
+`;
+
+const JOINS = `
+    FROM ${schema}.locations l
+
+    LEFT JOIN ${schema}.locations p
+        ON p.id = l.parent_id
+`;
+
 async function getAll() {
 
     const sql = `
         SELECT
-
-            id,
-            name,
-            description
-
-        FROM ${schema}.locations
-
-        ORDER BY name;
+            ${SELECT_FIELDS}
+        ${JOINS}
+        ORDER BY l.name;
     `;
 
     const result = await pool.query(sql);
@@ -24,14 +35,9 @@ async function getById(id) {
 
     const sql = `
         SELECT
-
-            id,
-            name,
-            description
-
-        FROM ${schema}.locations
-
-        WHERE id = $1;
+            ${SELECT_FIELDS}
+        ${JOINS}
+        WHERE l.id = $1;
     `;
 
     const result = await pool.query(sql, [id]);
@@ -45,16 +51,18 @@ async function create(data) {
     const sql = `
         INSERT INTO ${schema}.locations (
             name,
-            description
+            description,
+            parent_id
         ) VALUES (
-            $1, $2
+            $1, $2, $3
         )
         RETURNING id;
     `;
 
     const result = await pool.query(sql, [
         data.name,
-        data.description
+        data.description,
+        data.parent_id
     ]);
 
     return getById(result.rows[0].id);
@@ -67,14 +75,16 @@ async function update(id, data) {
         UPDATE ${schema}.locations
         SET
             name = $1,
-            description = $2
-        WHERE id = $3
+            description = $2,
+            parent_id = $3
+        WHERE id = $4
         RETURNING id;
     `;
 
     const result = await pool.query(sql, [
         data.name,
         data.description,
+        data.parent_id,
         id
     ]);
 

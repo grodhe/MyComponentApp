@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getManufacturers } from "../../services/manufacturerService";
 import { getCategories } from "../../services/categoryService";
 import { getLocations } from "../../services/locationService";
+import { getLocationPath } from "../../utils/locationTree";
 
 import {
     Dialog,
@@ -55,6 +56,10 @@ import {
 		mode = "add",
 
 		component,
+
+		// Prefills Location when adding a component from inside a
+		// location's row in the Locations tree (e.g. its "+" menu).
+		defaultLocationId = null,
 
 		onClose,
 
@@ -112,13 +117,16 @@ import {
 
 		} else {
 
-			setData(emptyComponent);
+			setData({
+				...emptyComponent,
+				location_id: defaultLocationId ?? ""
+			});
 
 		}
 
 		loadLookups();
 
-	}, [open, mode, component]);
+	}, [open, mode, component, defaultLocationId]);
 
 
 	function handleChange(event) {
@@ -320,7 +328,7 @@ import {
                             key={location.id}
                             value={location.id}
                         >
-                            {location.name}
+                            {getLocationPath(locations, location.id)}
                         </MenuItem>
 
                     ))}

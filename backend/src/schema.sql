@@ -15,11 +15,20 @@ CREATE TABLE IF NOT EXISTS categories (
     description TEXT
 );
 
+-- parent_id makes locations hierarchical (e.g. Cabinet A -> Drawer A1).
+-- ON DELETE RESTRICT: you can't delete a location while it still has
+-- sub-locations or items stored directly in it -- move/delete those first.
+-- NOTE: if you already have a locations table, this CREATE TABLE IF NOT
+-- EXISTS won't add the new column to it. Run migrate_location_hierarchy.sql
+-- once against your existing database instead.
 CREATE TABLE IF NOT EXISTS locations (
     id          SERIAL PRIMARY KEY,
     name        TEXT NOT NULL,
-    description TEXT
+    description TEXT,
+    parent_id   INTEGER REFERENCES locations(id) ON DELETE RESTRICT
 );
+
+CREATE INDEX IF NOT EXISTS idx_locations_parent ON locations(parent_id);
 
 CREATE TABLE IF NOT EXISTS suppliers (
     id          SERIAL PRIMARY KEY,
@@ -202,4 +211,66 @@ CREATE TABLE IF NOT EXISTS project_tasks
 
     CONSTRAINT uq_project_task
         UNIQUE(project_id, title)
+);
+
+-- Generic parts catalog: anything a build needs that isn't a "component"
+-- in the electronics sense -- enclosures, screws, cable, adhesive, etc.
+-- Reuses the existing categories/locations/suppliers lookup tables so it
+-- fits the same organizational model as components.
+CREATE TABLE IF NOT EXISTS generic_items
+(
+    id                  SERIAL PRIMARY KEY,
+
+    name                TEXT NOT NULL,
+    description         TEXT,
+
+    category_id         INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+    location_id         INTEGER REFERENCES locations(id) ON DELETE SET NULL,
+    supplier_id         INTEGER REFERENCES suppliers(id) ON DELETE SET NULL,
+
+    part_number         TEXT,
+
+    unit                TEXT NOT NULL DEFAULT 'pcs',
+
+    quantity            INTEGER NOT NULL DEFAULT 0,
+    minimum_quantity    INTEGER NOT NULL DEFAULT 0,
+
+    reference_url       TEXT,
+    notes               TEXT,
+
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_generic_items_category ON generic_items(category_id);
+CREATE INDEX IF NOT EXISTS idx_generic_items_location ON generic_items(location_id);
+CREATE INDEX IF NOT EXISTS idx_generic_items_supplier ON generic_items(supplier_id);
+
+-- Same shape as project_components, but for generic_items. Kept as a
+-- separate table (rather than making project_components polymorphic) so
+-- nothing about your existing project_components table has to change.
+CREATE TABLE IF NOT EXISTS project_generic_items
+(
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    project_id BIGINT NOT NULL,
+
+    generic_item_id INTEGER NOT NULL,
+
+    quantity NUMERIC(10,2) NOT NULL DEFAULT 1,
+
+    notes TEXT,
+
+    CONSTRAINT fk_pgi_project
+        FOREIGN KEY(project_id)
+        REFERENCES projects(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_pgi_generic_item
+        FOREIGN KEY(generic_item_id)
+        REFERENCES generic_items(id)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT uq_project_generic_item
+        UNIQUE(project_id, generic_item_id)
 );

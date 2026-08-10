@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getCategories } from "../../services/categoryService";
 import { getLocations } from "../../services/locationService";
 import { getSuppliers } from "../../services/supplierService";
+import { getLocationPath } from "../../utils/locationTree";
 
 import {
     Dialog,
@@ -51,6 +52,10 @@ function GenericItemDialog({
     mode = "add",
 
     item,
+
+    // Prefills Location when adding an item from inside a location's row
+    // in the Locations tree (e.g. its "+" menu).
+    defaultLocationId = null,
 
     onClose,
 
@@ -104,13 +109,16 @@ function GenericItemDialog({
 
         } else {
 
-            setData(emptyItem);
+            setData({
+                ...emptyItem,
+                location_id: defaultLocationId ?? ""
+            });
 
         }
 
         loadLookups();
 
-    }, [open, mode, item]);
+    }, [open, mode, item, defaultLocationId]);
 
     function handleChange(event) {
 
@@ -244,7 +252,7 @@ function GenericItemDialog({
                                         key={location.id}
                                         value={location.id}
                                     >
-                                        {location.name}
+                                        {getLocationPath(locations, location.id)}
                                     </MenuItem>
 
                                 ))}

@@ -50,6 +50,27 @@ async function getLocationById(req, res) {
 
 }
 
+async function getLocationContents(req, res) {
+
+    try {
+
+        const contents =
+            await service.getLocationContents(req.params.id);
+
+        res.json(contents);
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(err.status || 500).json({
+            error: err.message
+        });
+
+    }
+
+}
+
 async function createLocation(req, res) {
 
     try {
@@ -115,6 +136,7 @@ async function deleteLocation(req, res) {
 module.exports = {
     getAllLocations,
     getLocationById,
+    getLocationContents,
     createLocation,
     updateLocation,
     deleteLocation

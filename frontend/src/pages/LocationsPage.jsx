@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { Button } from "@mui/material";
-import PrintIcon from "@mui/icons-material/Print";
+import { Box, Stack, Paper, Typography, Button } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 
 import {
     getLocations,
@@ -10,29 +11,75 @@ import {
     deleteLocation
 } from "../services/locationService";
 
-import DataTable from "../components/common/DataTable";
-import CrudToolbar from "../components/common/CrudToolbar";
+import {
+    getComponents,
+    createComponent,
+    updateComponent,
+    deleteComponent
+} from "../services/componentService";
+
+import {
+    getGenericItems,
+    createGenericItem,
+    updateGenericItem,
+    deleteGenericItem
+} from "../services/genericItemService";
+
+import { buildFullLocationTree } from "../utils/locationTree";
+
+import LocationTree from "../components/locations/LocationTree";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import LocationDialog from "../components/dialogs/LocationDialog";
+import ComponentDialog from "../components/dialogs/ComponentDialog";
+import GenericItemDialog from "../components/dialogs/GenericItemDialog";
 import LabelPrintArea from "../components/common/LabelPrintArea";
 
 function LocationsPage() {
 
+    const navigate = useNavigate();
+
     const [locations, setLocations] = useState([]);
-    const [filter, setFilter] = useState("");
-    const [selectedLocation, setSelectedLocation] = useState(null);
+    const [components, setComponents] = useState([]);
+    const [genericItems, setGenericItems] = useState([]);
 
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [dialogMode, setDialogMode] = useState("add");
+    // Location dialog (add/edit a cabinet, drawer, ...)
+    const [locationDialogOpen, setLocationDialogOpen] = useState(false);
+    const [locationDialogMode, setLocationDialogMode] = useState("add");
+    const [locationDialogTarget, setLocationDialogTarget] = useState(null);
+    const [locationDialogDefaultParentId, setLocationDialogDefaultParentId] = useState(null);
 
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    // Component dialog, reused here for "add a component to this location"
+    // and for editing a component reached via the tree.
+    const [componentDialogOpen, setComponentDialogOpen] = useState(false);
+    const [componentDialogMode, setComponentDialogMode] = useState("add");
+    const [componentDialogTarget, setComponentDialogTarget] = useState(null);
+    const [componentDialogDefaultLocationId, setComponentDialogDefaultLocationId] = useState(null);
 
-    async function loadLocations() {
+    // Generic item dialog, same idea.
+    const [itemDialogOpen, setItemDialogOpen] = useState(false);
+    const [itemDialogMode, setItemDialogMode] = useState("add");
+    const [itemDialogTarget, setItemDialogTarget] = useState(null);
+    const [itemDialogDefaultLocationId, setItemDialogDefaultLocationId] = useState(null);
+
+    // One shared delete-confirmation dialog for all three node types.
+    const [deleteTarget, setDeleteTarget] = useState(null);
+
+    // Set right before calling window.print() -- see the effect below.
+    const [printTarget, setPrintTarget] = useState(null);
+
+    async function loadAll() {
 
         try {
 
-            const data = await getLocations();
-            setLocations(data);
+            const [locationsResult, componentsResult, itemsResult] = await Promise.all([
+                getLocations(),
+                getComponents(),
+                getGenericItems()
+            ]);
+
+            setLocations(locationsResult);
+            setComponents(componentsResult);
+            setGenericItems(itemsResult);
 
         } catch (err) {
 
@@ -44,53 +91,69 @@ function LocationsPage() {
 
     useEffect(() => {
 
-        loadLocations();
+        loadAll();
 
     }, []);
 
-    function handleAdd() {
+    // window.print() needs LabelPrintArea to have already re-rendered with
+    // the new target's lines before it's called -- doing that inside a
+    // plain click handler would race the state update. Effects run after
+    // React commits the DOM, so this is the safe place for it.
+    useEffect(() => {
 
-        setDialogMode("add");
-        setSelectedLocation(null);
-        setDialogOpen(true);
+        if (printTarget) {
+            window.print();
+            setPrintTarget(null);
+        }
+
+    }, [printTarget]);
+
+    const tree = useMemo(
+        () => buildFullLocationTree(locations, components, genericItems),
+        [locations, components, genericItems]
+    );
+
+    // --- Location actions ---
+
+    function handleAddRootLocation() {
+
+        setLocationDialogMode("add");
+        setLocationDialogTarget(null);
+        setLocationDialogDefaultParentId(null);
+        setLocationDialogOpen(true);
 
     }
 
-    function handleEdit(location) {
+    function handleAddSubLocation(location) {
 
-        if (!location)
-            return;
-
-        setSelectedLocation(location);
-        setDialogMode("edit");
-        setDialogOpen(true);
+        setLocationDialogMode("add");
+        setLocationDialogTarget(null);
+        setLocationDialogDefaultParentId(location.id);
+        setLocationDialogOpen(true);
 
     }
 
-    function handleClose() {
+    function handleEditLocation(location) {
 
-        setDialogOpen(false);
+        setLocationDialogMode("edit");
+        setLocationDialogTarget(location);
+        setLocationDialogOpen(true);
 
     }
 
-    async function handleSave(location) {
+    async function handleSaveLocation(data) {
 
         try {
 
-            if (dialogMode === "edit" && selectedLocation) {
-
-                await updateLocation(selectedLocation.id, location);
-
+            if (locationDialogMode === "edit" && locationDialogTarget) {
+                await updateLocation(locationDialogTarget.id, data);
             } else {
-
-                await createLocation(location);
-
+                await createLocation(data);
             }
 
-            setDialogOpen(false);
-            setSelectedLocation(null);
+            setLocationDialogOpen(false);
 
-            await loadLocations();
+            await loadAll();
 
         } catch (err) {
 
@@ -101,173 +164,272 @@ function LocationsPage() {
 
     }
 
-    function handleDelete(location) {
+    function handlePrintLocation(location) {
 
-        if (!location)
-            return;
-
-        setSelectedLocation(location);
-        setDeleteDialogOpen(true);
+        setPrintTarget(location);
 
     }
 
-    async function handleConfirmDelete() {
+    // --- Component actions ---
 
-        if (!selectedLocation)
-            return;
+    function handleAddComponent(location) {
+
+        setComponentDialogMode("add");
+        setComponentDialogTarget(null);
+        setComponentDialogDefaultLocationId(location.id);
+        setComponentDialogOpen(true);
+
+    }
+
+    function handleEditComponent(component) {
+
+        setComponentDialogMode("edit");
+        setComponentDialogTarget(component);
+        setComponentDialogOpen(true);
+
+    }
+
+    async function handleSaveComponent(data) {
 
         try {
 
-            await deleteLocation(selectedLocation.id);
+            if (componentDialogMode === "edit" && componentDialogTarget) {
+                await updateComponent(componentDialogTarget.id, data);
+            } else {
+                await createComponent(data);
+            }
 
-            setDeleteDialogOpen(false);
-            setSelectedLocation(null);
+            setComponentDialogOpen(false);
 
-            await loadLocations();
+            await loadAll();
 
         } catch (err) {
 
-            console.error("Failed to delete location:", err);
-            alert(`Failed to delete location: ${err.message}`);
+            console.error("Failed to save component:", err);
+            alert(`Failed to save component: ${err.message}`);
 
         }
 
     }
 
-    function handleCancelDelete() {
+    function handleOpenComponent(component) {
 
-        setDeleteDialogOpen(false);
-
-    }
-
-    function handlePrint() {
-
-        if (!selectedLocation)
-            return;
-
-        window.print();
+        navigate(`/components/${component.id}`);
 
     }
 
-    const columns = [
+    // --- Generic item actions ---
 
-        {
-            field: "name",
-            headerName: "Name",
-            flex: 1
-        },
+    function handleAddGenericItem(location) {
 
-        {
-            field: "description",
-            headerName: "Description",
-            flex: 2
+        setItemDialogMode("add");
+        setItemDialogTarget(null);
+        setItemDialogDefaultLocationId(location.id);
+        setItemDialogOpen(true);
+
+    }
+
+    function handleEditGenericItem(item) {
+
+        setItemDialogMode("edit");
+        setItemDialogTarget(item);
+        setItemDialogOpen(true);
+
+    }
+
+    async function handleSaveGenericItem(data) {
+
+        try {
+
+            if (itemDialogMode === "edit" && itemDialogTarget) {
+                await updateGenericItem(itemDialogTarget.id, data);
+            } else {
+                await createGenericItem(data);
+            }
+
+            setItemDialogOpen(false);
+
+            await loadAll();
+
+        } catch (err) {
+
+            console.error("Failed to save generic item:", err);
+            alert(`Failed to save item: ${err.message}`);
+
         }
 
-    ];
+    }
 
-    const filteredLocations = locations.filter(location => {
+    // --- Shared delete confirmation ---
 
-        const text = filter.toLowerCase();
+    function handleConfirmDelete() {
 
-        return (
+        if (!deleteTarget)
+            return Promise.resolve();
 
-            (location.name ?? "").toLowerCase().includes(text) ||
-            (location.description ?? "").toLowerCase().includes(text)
+        const { type, raw } = deleteTarget;
 
-        );
+        const action = type === "location"
+            ? () => deleteLocation(raw.id)
+            : type === "component"
+                ? () => deleteComponent(raw.id)
+                : () => deleteGenericItem(raw.id);
 
-    });
+        return action()
+            .then(() => {
+                setDeleteTarget(null);
+                return loadAll();
+            })
+            .catch((err) => {
+                console.error(`Failed to delete ${type}:`, err);
+                alert(`Failed to delete: ${err.message}`);
+            });
+
+    }
+
+    function deleteMessage() {
+
+        if (!deleteTarget)
+            return "";
+
+        const { type, raw } = deleteTarget;
+
+        if (type === "location") {
+            return `Are you sure you want to delete "${raw.name}"? This cannot be undone.`;
+        }
+
+        if (type === "component") {
+            return `Are you sure you want to delete "${raw.part_number}"? This cannot be undone.`;
+        }
+
+        return `Are you sure you want to delete "${raw.name}"? This cannot be undone.`;
+
+    }
+
+    const treeActions = {
+        onEditLocation: handleEditLocation,
+        onAddSubLocation: handleAddSubLocation,
+        onAddComponent: handleAddComponent,
+        onAddGenericItem: handleAddGenericItem,
+        onDeleteLocation: (location) => setDeleteTarget({ type: "location", raw: location }),
+        onPrintLocation: handlePrintLocation,
+        onEditComponent: handleEditComponent,
+        onDeleteComponent: (component) => setDeleteTarget({ type: "component", raw: component }),
+        onOpenComponent: handleOpenComponent,
+        onEditGenericItem: handleEditGenericItem,
+        onDeleteGenericItem: (item) => setDeleteTarget({ type: "genericItem", raw: item })
+    };
 
     return (
 
-        <>
+        <Box>
 
-            <CrudToolbar
+            <Stack
+                direction="row"
+                alignItems="center"
+                sx={{ mb: 3 }}
+            >
 
-                title="Locations"
+                <Typography variant="h4" fontWeight="bold">
+                    Locations
+                </Typography>
 
-                search={filter}
+                <Box sx={{ flexGrow: 1 }} />
 
-                onSearchChange={setFilter}
+                <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={handleAddRootLocation}
+                >
+                    Add Location
+                </Button>
 
-                addLabel="Add Location"
+            </Stack>
 
-                onAdd={handleAdd}
+            <Paper
+                elevation={2}
+                sx={{
+                    maxHeight: 700,
+                    overflowY: "auto"
+                }}
+            >
 
-                onEdit={() => handleEdit(selectedLocation)}
+                <LocationTree
+                    nodes={tree}
+                    actions={treeActions}
+                />
 
-                editDisabled={!selectedLocation}
-
-                onDelete={() => handleDelete(selectedLocation)}
-
-                deleteDisabled={!selectedLocation}
-
-                trailingActions={
-
-                    <Button
-                        variant="outlined"
-                        startIcon={<PrintIcon />}
-                        onClick={handlePrint}
-                        disabled={!selectedLocation}
-                    >
-                        Print Label
-                    </Button>
-
-                }
-
-            />
-
-            <DataTable
-
-                rows={filteredLocations}
-
-                columns={columns}
-
-                onSelectionChange={setSelectedLocation}
-
-                onRowDoubleClick={(params) => handleEdit(params.row)}
-
-            />
+            </Paper>
 
             <LocationDialog
 
-                open={dialogOpen}
+                open={locationDialogOpen}
 
-                mode={dialogMode}
+                mode={locationDialogMode}
 
-                location={dialogMode === "edit" ? selectedLocation : null}
+                location={locationDialogMode === "edit" ? locationDialogTarget : null}
 
-                onClose={handleClose}
+                defaultParentId={locationDialogDefaultParentId}
 
-                onSave={handleSave}
+                onClose={() => setLocationDialogOpen(false)}
+
+                onSave={handleSaveLocation}
+
+            />
+
+            <ComponentDialog
+
+                open={componentDialogOpen}
+
+                mode={componentDialogMode}
+
+                component={componentDialogMode === "edit" ? componentDialogTarget : null}
+
+                defaultLocationId={componentDialogDefaultLocationId}
+
+                onClose={() => setComponentDialogOpen(false)}
+
+                onSave={handleSaveComponent}
+
+            />
+
+            <GenericItemDialog
+
+                open={itemDialogOpen}
+
+                mode={itemDialogMode}
+
+                item={itemDialogMode === "edit" ? itemDialogTarget : null}
+
+                defaultLocationId={itemDialogDefaultLocationId}
+
+                onClose={() => setItemDialogOpen(false)}
+
+                onSave={handleSaveGenericItem}
 
             />
 
             <ConfirmDialog
 
-                open={deleteDialogOpen}
+                open={Boolean(deleteTarget)}
 
-                title="Delete Location"
+                title="Delete"
 
-                message={
-                    selectedLocation
-                        ? `Are you sure you want to delete "${selectedLocation.name}"? This cannot be undone.`
-                        : "Are you sure you want to delete this location? This cannot be undone."
-                }
+                message={deleteMessage()}
 
                 confirmLabel="Delete"
                 confirmColor="error"
 
                 onConfirm={handleConfirmDelete}
-                onCancel={handleCancelDelete}
+                onCancel={() => setDeleteTarget(null)}
 
             />
 
             <LabelPrintArea
-                lines={[selectedLocation?.name, selectedLocation?.description]}
+                lines={[printTarget?.name, printTarget?.description]}
             />
 
-        </>
+        </Box>
 
     );
 

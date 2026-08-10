@@ -77,6 +77,24 @@ async function getById(id) {
 
 }
 
+// Used by the "what's stored here" view on a location's detail page.
+async function getByLocationId(locationId) {
+
+    const sql = `
+        SELECT
+            ${SELECT_FIELDS}
+        ${JOINS}
+        WHERE c.location_id = $1
+        ORDER BY
+            c.part_number;
+    `;
+
+    const result = await pool.query(sql, [locationId]);
+
+    return result.rows;
+
+}
+
 async function create(data) {
 
     const sql = `
@@ -195,6 +213,7 @@ async function remove(id) {
 module.exports = {
     getAll,
     getById,
+    getByLocationId,
     create,
     update,
     remove
