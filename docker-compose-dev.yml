@@ -41,6 +41,7 @@ services:
 
   backend:
     container_name: mycomponent-backend
+    image: mycomponent-backend:dev
 
     build:
       context: ./backend
