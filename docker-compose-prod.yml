@@ -20,7 +20,7 @@ services:
 
   frontend:
     container_name: mycomponent-frontend
-
+    image: mycomponent-frontend:prod
     build:
       context: ./frontend
       args:
@@ -28,8 +28,6 @@ services:
 
     restart: unless-stopped
 
-    env_file:
-      - .env
 
     expose:
       - "3000"
