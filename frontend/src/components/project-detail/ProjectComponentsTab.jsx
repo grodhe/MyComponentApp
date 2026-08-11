@@ -184,7 +184,6 @@ function ProjectComponentsTab({ projectId }) {
 
             <Stack
                 direction="row"
-                justifyContent="space-between"
                 alignItems="center"
                 sx={{ mb: 2 }}
             >
@@ -192,6 +191,8 @@ function ProjectComponentsTab({ projectId }) {
                 <Typography variant="h6">
                     Bill of Materials
                 </Typography>
+
+                <Box sx={{ flexGrow: 1 }} />
 
                 <Button
                     variant="contained"
@@ -206,6 +207,7 @@ function ProjectComponentsTab({ projectId }) {
             <DataTable
                 rows={entries}
                 columns={columns}
+                onRowDoubleClick={(params) => handleEdit(params.row)}
             />
 
             <ProjectComponentDialog

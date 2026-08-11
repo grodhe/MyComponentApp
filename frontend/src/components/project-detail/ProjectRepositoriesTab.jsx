@@ -181,13 +181,14 @@ function ProjectRepositoriesTab({ projectId }) {
             <Stack
                 direction="row"
                 alignItems="center"
-                spacing={3}
                 sx={{ mb: 2 }}
             >
 
                 <Typography variant="h6">
                     Repositories
                 </Typography>
+
+                <Box sx={{ flexGrow: 1 }} />
 
                 <Button
                     variant="contained"
@@ -202,6 +203,7 @@ function ProjectRepositoriesTab({ projectId }) {
             <DataTable
                 rows={repositories}
                 columns={columns}
+                onRowDoubleClick={(params) => handleEdit(params.row)}
             />
 
             <ProjectRepositoryDialog

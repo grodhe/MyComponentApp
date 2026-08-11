@@ -251,13 +251,14 @@ function ProjectPartsTab({ projectId }) {
             <Stack
                 direction="row"
                 alignItems="center"
-                spacing={3}
                 sx={{ mb: 2 }}
             >
 
                 <Typography variant="h6">
                     Parts
                 </Typography>
+
+                <Box sx={{ flexGrow: 1 }} />
 
                 <Button
                     variant="contained"
@@ -272,6 +273,7 @@ function ProjectPartsTab({ projectId }) {
             <DataTable
                 rows={rows}
                 columns={columns}
+                onRowDoubleClick={(params) => handleEdit(params.row)}
             />
 
             <PartDialog

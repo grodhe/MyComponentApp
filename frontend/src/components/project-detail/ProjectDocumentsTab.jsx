@@ -172,13 +172,14 @@ function ProjectDocumentsTab({ projectId }) {
             <Stack
                 direction="row"
                 alignItems="center"
-                spacing={3}
                 sx={{ mb: 2 }}
             >
 
                 <Typography variant="h6">
                     Documents
                 </Typography>
+
+                <Box sx={{ flexGrow: 1 }} />
 
                 <Button
                     variant="contained"
@@ -193,6 +194,7 @@ function ProjectDocumentsTab({ projectId }) {
             <DataTable
                 rows={documents}
                 columns={columns}
+                onRowDoubleClick={(params) => handleEdit(params.row)}
             />
 
             <ProjectDocumentDialog

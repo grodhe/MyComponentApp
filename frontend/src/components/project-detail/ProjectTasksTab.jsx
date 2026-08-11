@@ -200,13 +200,14 @@ function ProjectTasksTab({ projectId }) {
             <Stack
                 direction="row"
                 alignItems="center"
-                spacing={3}
                 sx={{ mb: 2 }}
             >
 
                 <Typography variant="h6">
                     Tasks
                 </Typography>
+
+                <Box sx={{ flexGrow: 1 }} />
 
                 <Button
                     variant="contained"
@@ -221,6 +222,7 @@ function ProjectTasksTab({ projectId }) {
             <DataTable
                 rows={tasks}
                 columns={columns}
+                onRowDoubleClick={(params) => handleEdit(params.row)}
             />
 
             <ProjectTaskDialog
