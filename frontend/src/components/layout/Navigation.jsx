@@ -15,8 +15,13 @@ const drawerWidth = 180;
 const menu = [
 
     {
-        text: "Components",
+        text: "Dashboard",
         path: "/"
+    },
+
+    {
+        text: "Components",
+        path: "/components"
     },
 
     {
@@ -37,6 +42,11 @@ const menu = [
     {
         text: "Suppliers",
         path: "/suppliers"
+    },
+
+    {
+        text: "Inventory Transactions",
+        path: "/inventory-transactions"
     },
 
     {

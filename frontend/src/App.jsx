@@ -2,8 +2,10 @@ import { Routes, Route } from "react-router-dom";
 
 import Layout from "./components/layout/Layout";
 
+import DashboardPage from "./pages/DashboardPage";
 import ComponentsPage from "./pages/ComponentsPage";
 import ComponentDetail from "./pages/ComponentDetailPage";
+import InventoryTransactions from "./pages/InventoryTransactionsPage";
 import GenericItems from "./pages/GenericItemsPage";
 import Manufacturers from "./pages/ManufacturersPage";
 import Categories from "./pages/CategoriesPage";
@@ -23,12 +25,22 @@ function App() {
 
                 <Route
                     path="/"
+                    element={<DashboardPage />}
+                />
+
+                <Route
+                    path="/components"
                     element={<ComponentsPage />}
                 />
 
                 <Route
                     path="/components/:id"
                     element={<ComponentDetail />}
+                />
+
+                <Route
+                    path="/inventory-transactions"
+                    element={<InventoryTransactions />}
                 />
 
                 <Route

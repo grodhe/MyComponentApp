@@ -15,11 +15,20 @@ CREATE TABLE IF NOT EXISTS categories (
     description TEXT
 );
 
+-- parent_id makes locations hierarchical (e.g. Cabinet A -> Drawer A1).
+-- ON DELETE RESTRICT: you can't delete a location while it still has
+-- sub-locations or items stored directly in it -- move/delete those first.
+-- NOTE: if you already have a locations table, this CREATE TABLE IF NOT
+-- EXISTS won't add the new column to it. Run migrate_location_hierarchy.sql
+-- once against your existing database instead.
 CREATE TABLE IF NOT EXISTS locations (
     id          SERIAL PRIMARY KEY,
     name        TEXT NOT NULL,
-    description TEXT
+    description TEXT,
+    parent_id   INTEGER REFERENCES locations(id) ON DELETE RESTRICT
 );
+
+CREATE INDEX IF NOT EXISTS idx_locations_parent ON locations(parent_id);
 
 CREATE TABLE IF NOT EXISTS suppliers (
     id          SERIAL PRIMARY KEY,

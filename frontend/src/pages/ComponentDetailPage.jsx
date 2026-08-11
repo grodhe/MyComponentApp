@@ -8,7 +8,12 @@ import {
     Divider,
     Grid,
     Chip,
-    Button
+    Button,
+    Table,
+    TableHead,
+    TableBody,
+    TableRow,
+    TableCell
 } from "@mui/material";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -16,12 +21,15 @@ import EditIcon from "@mui/icons-material/Edit";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutlined";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutlined";
 import PrintIcon from "@mui/icons-material/Print";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 import { getComponent, updateComponent } from "../services/componentService";
+import { getComponentTransactions, createTransaction } from "../services/inventoryTransactionService";
 import { PUBLIC_APP_BASE_URL } from "../config";
 
 import ComponentDialog from "../components/dialogs/ComponentDialog";
-import AddStockDialog from "../components/dialogs/AddStockDialog";
+import StockAdjustDialog from "../components/dialogs/StockAdjustDialog";
 import LabelPrintArea from "../components/common/LabelPrintArea";
 
 // A single labeled field in the detail grid. Renders nothing if there's no
@@ -53,22 +61,46 @@ function DetailField({ label, value }) {
 
 }
 
+function formatTimestamp(value) {
+
+    if (!value)
+        return "";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime()))
+        return String(value);
+
+    return date.toLocaleString();
+
+}
+
 function ComponentDetailPage() {
 
     const { id } = useParams();
     const navigate = useNavigate();
 
     const [component, setComponent] = useState(null);
+    const [transactions, setTransactions] = useState([]);
 
     const [editOpen, setEditOpen] = useState(false);
-    const [addStockOpen, setAddStockOpen] = useState(false);
+
+    // "use" or "add" -- StockAdjustDialog reuses the same dialog for both,
+    // this just picks the title/labels and the sign of the change.
+    const [stockDialogMode, setStockDialogMode] = useState("use");
+    const [stockDialogOpen, setStockDialogOpen] = useState(false);
 
     async function load() {
 
         try {
 
-            const data = await getComponent(id);
-            setComponent(data);
+            const [componentData, transactionsData] = await Promise.all([
+                getComponent(id),
+                getComponentTransactions(id)
+            ]);
+
+            setComponent(componentData);
+            setTransactions(transactionsData);
 
         } catch (err) {
 
@@ -84,50 +116,49 @@ function ComponentDetailPage() {
 
     }, [id]);
 
-    // "Use 1" / "Add Stock" both go through the normal update endpoint with
-    // the full component object (just the quantity changed) -- the backend
-    // update route doesn't have separate increment/decrement actions, and
-    // for a single-user app there's no real risk in doing it this way.
-    async function applyQuantityChange(newQuantity) {
+    function handleOpenUse() {
+
+        setStockDialogMode("use");
+        setStockDialogOpen(true);
+
+    }
+
+    function handleOpenAdd() {
+
+        setStockDialogMode("add");
+        setStockDialogOpen(true);
+
+    }
+
+    // Every stock change -- using parts or adding them back -- goes through
+    // the transactions endpoint instead of a plain quantity update, so it
+    // always leaves a reason + timestamp behind (see
+    // inventoryTransactionsServices.js on the backend, which applies the
+    // quantity change and records the transaction together).
+    async function handleConfirmStockAdjust(amount, reason) {
+
+        if (!component)
+            return;
+
+        const quantityDelta = stockDialogMode === "use" ? -amount : amount;
 
         try {
 
-            const updated = await updateComponent(component.id, {
-                ...component,
-                quantity: newQuantity
+            const result = await createTransaction(component.id, {
+                quantity_delta: quantityDelta,
+                reason
             });
 
-            setComponent(updated);
+            setComponent(result.component);
+            setTransactions((current) => [result.transaction, ...current]);
+            setStockDialogOpen(false);
 
         } catch (err) {
 
-            console.error("Failed to update quantity:", err);
-            alert(`Failed to update quantity: ${err.message}`);
+            console.error("Failed to record stock change:", err);
+            alert(`Failed to record stock change: ${err.message}`);
 
         }
-
-    }
-
-    function handleUseOne() {
-
-        if (!component)
-            return;
-
-        const newQuantity = Math.max(0, (component.quantity ?? 0) - 1);
-
-        applyQuantityChange(newQuantity);
-
-    }
-
-    function handleAddStock(amount) {
-
-        if (!component)
-            return;
-
-        const newQuantity = (component.quantity ?? 0) + amount;
-
-        applyQuantityChange(newQuantity);
-        setAddStockOpen(false);
 
     }
 
@@ -168,7 +199,7 @@ function ComponentDetailPage() {
 
             <Button
                 startIcon={<ArrowBackIcon />}
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/components")}
                 sx={{ mb: 2 }}
             >
                 Back to Components
@@ -202,10 +233,52 @@ function ComponentDetailPage() {
                     <Typography
                         variant="body2"
                         color="text.secondary"
-                        sx={{ mb: 3 }}
+                        sx={{ mb: component.datasheet_url || component.manufacturer_website ? 1 : 3 }}
                     >
                         {component.part_number}
                     </Typography>
+
+                    {(component.datasheet_url || component.manufacturer_website) && (
+
+                        <Stack
+                            direction="row"
+                            spacing={2}
+                            sx={{ mb: 2 }}
+                        >
+
+                            {component.datasheet_url && (
+
+                                <Button
+                                    component="a"
+                                    href={component.datasheet_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    size="small"
+                                    startIcon={<PictureAsPdfIcon />}
+                                >
+                                    Datasheet
+                                </Button>
+
+                            )}
+
+                            {component.manufacturer_website && (
+
+                                <Button
+                                    component="a"
+                                    href={component.manufacturer_website}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    size="small"
+                                    startIcon={<OpenInNewIcon />}
+                                >
+                                    Manufacturer
+                                </Button>
+
+                            )}
+
+                        </Stack>
+
+                    )}
 
                     <Stack
                         direction="row"
@@ -224,16 +297,16 @@ function ComponentDetailPage() {
                         <Button
                             variant="outlined"
                             startIcon={<RemoveCircleOutlineIcon />}
-                            onClick={handleUseOne}
+                            onClick={handleOpenUse}
                             disabled={(component.quantity ?? 0) <= 0}
                         >
-                            Use 1
+                            Use Stock
                         </Button>
 
                         <Button
                             variant="outlined"
                             startIcon={<AddCircleOutlineIcon />}
-                            onClick={() => setAddStockOpen(true)}
+                            onClick={handleOpenAdd}
                         >
                             Add Stock
                         </Button>
@@ -310,6 +383,64 @@ function ComponentDetailPage() {
 
                     </Grid>
 
+                    <Divider sx={{ mt: 4, mb: 2 }} />
+
+                    <Typography variant="h6" sx={{ mb: 1 }}>
+                        Stock History
+                    </Typography>
+
+                    {transactions.length === 0 ? (
+
+                        <Typography color="text.secondary">
+                            No stock movements recorded yet -- use "Use Stock" or "Add Stock" above.
+                        </Typography>
+
+                    ) : (
+
+                        <Table size="small">
+
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Date</TableCell>
+                                    <TableCell align="right">Change</TableCell>
+                                    <TableCell>Reason</TableCell>
+                                </TableRow>
+                            </TableHead>
+
+                            <TableBody>
+
+                                {transactions.map((t) => (
+
+                                    <TableRow key={t.id}>
+
+                                        <TableCell>
+                                            {formatTimestamp(t.created_at)}
+                                        </TableCell>
+
+                                        <TableCell
+                                            align="right"
+                                            sx={{
+                                                color: t.quantity_delta < 0 ? "error.main" : "success.main",
+                                                fontWeight: "bold"
+                                            }}
+                                        >
+                                            {t.quantity_delta > 0 ? `+${t.quantity_delta}` : t.quantity_delta}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {t.reason}
+                                        </TableCell>
+
+                                    </TableRow>
+
+                                ))}
+
+                            </TableBody>
+
+                        </Table>
+
+                    )}
+
                 </>
 
             )}
@@ -322,10 +453,11 @@ function ComponentDetailPage() {
                 onSave={handleSaveEdit}
             />
 
-            <AddStockDialog
-                open={addStockOpen}
-                onClose={() => setAddStockOpen(false)}
-                onConfirm={handleAddStock}
+            <StockAdjustDialog
+                open={stockDialogOpen}
+                mode={stockDialogMode}
+                onClose={() => setStockDialogOpen(false)}
+                onConfirm={handleConfirmStockAdjust}
             />
 
             <LabelPrintArea

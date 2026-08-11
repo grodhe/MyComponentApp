@@ -40,6 +40,10 @@ const projectTasksRoutes = require("./routes/projectTasksRoutes");
 
 const projectGenericItemsRoutes = require("./routes/projectGenericItemsRoutes");
 
+const componentTransactionsRoutes = require("./routes/componentTransactionsRoutes");
+
+const inventoryTransactionsRoutes = require("./routes/inventoryTransactionsRoutes");
+
 
 app.use("/api/components", componentRoutes);
 
@@ -67,6 +71,11 @@ app.use("/api/projects/:projectId/repositories", projectRepositoriesRoutes);
 app.use("/api/projects/:projectId/tasks", projectTasksRoutes);
 
 app.use("/api/projects/:projectId/generic-items", projectGenericItemsRoutes);
+
+// stock movement history, scoped to a component and as a global log
+app.use("/api/components/:componentId/transactions", componentTransactionsRoutes);
+
+app.use("/api/inventory-transactions", inventoryTransactionsRoutes);
 
 const PORT = process.env.PORT || 3001;
 
