@@ -1,4 +1,5 @@
 const service = require("../services/projectsServices");
+const csvService = require("../services/projectsCsvService");
 
 async function getAllProjects(req, res) {
 
@@ -112,10 +113,71 @@ async function deleteProject(req, res) {
 
 }
 
+
+async function exportProjectsCsv(req, res) {
+
+    try {
+
+        const csv = await csvService.exportProjectsCsv();
+
+        const date = new Date().toISOString().slice(0, 10);
+
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="projects_export_${date}.csv"`
+        );
+
+        res.send(csv);
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            error: err.message
+        });
+
+    }
+
+}
+
+async function importProjectsCsv(req, res) {
+
+    try {
+
+        const csvText = req.body && req.body.csv;
+
+        if (typeof csvText !== "string" || !csvText.trim()) {
+
+            return res.status(400).json({
+                error: "No CSV content was received."
+            });
+
+        }
+
+        const result = await csvService.importProjectsCsv(csvText);
+
+        res.json(result);
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(err.status || 500).json({
+            error: err.message
+        });
+
+    }
+
+}
+
 module.exports = {
     getAllProjects,
     getProjectById,
     createProject,
     updateProject,
-    deleteProject
+    deleteProject,
+    exportProjectsCsv,
+    importProjectsCsv
 };

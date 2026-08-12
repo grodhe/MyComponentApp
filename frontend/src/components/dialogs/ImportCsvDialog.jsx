@@ -18,15 +18,13 @@ import {
 
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 
-import { importComponentsCsv } from "../../services/componentService";
-
-// Upload flow: pick a .csv file, read it as text in the browser (no
-// multipart/form-data needed -- it's just sent as a JSON string, same as
-// every other request this app makes), then show a summary of what
-// happened. Errors are per-row, so one bad row doesn't block the rest of
-// the file, and warnings flag things like an auto-created manufacturer or
-// a location that couldn't be matched.
-function ImportCsvDialog({ open, onClose, onImported }) {
+// Generic CSV import dialog, reused for Components, Projects and Generic
+// Items -- the upload flow (pick a .csv, read it as text in the browser,
+// no multipart/form-data needed) and the result reporting (per-row
+// errors/warnings) are the same regardless of which entity is being
+// imported; only the title/helper text and the actual import call differ,
+// so those are passed in as props.
+function ImportCsvDialog({ open, onClose, onImported, title, helperText, onImport }) {
 
     const [file, setFile] = useState(null);
     const [importing, setImporting] = useState(false);
@@ -65,7 +63,7 @@ function ImportCsvDialog({ open, onClose, onImported }) {
         try {
 
             const text = await file.text();
-            const summary = await importComponentsCsv(text);
+            const summary = await onImport(text);
 
             setResult(summary);
 
@@ -95,21 +93,20 @@ function ImportCsvDialog({ open, onClose, onImported }) {
         >
 
             <DialogTitle>
-                Import Components from CSV
+                {title || "Import from CSV"}
             </DialogTitle>
 
             <DialogContent>
 
                 <Stack spacing={2} sx={{ mt: 1 }}>
 
-                    <Typography variant="body2" color="text.secondary">
-                        Rows are matched to existing components by their <strong>id</strong> column
-                        if present, otherwise by <strong>part_number</strong> -- a match updates that
-                        component, anything else is added as new. Manufacturer and Category names
-                        that don't exist yet are created automatically; Location names are only
-                        matched, never created (since locations can be nested), so an unmatched or
-                        ambiguous location is left blank and flagged below.
-                    </Typography>
+                    {helperText && (
+
+                        <Typography variant="body2" color="text.secondary">
+                            {helperText}
+                        </Typography>
+
+                    )}
 
                     <Button
                         variant="outlined"

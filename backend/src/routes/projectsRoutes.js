@@ -5,6 +5,10 @@ const controller = require("../controllers/projectsControllers");
 const router = express.Router();
 
 router.get("/", controller.getAllProjects);
+
+router.get("/export/csv", controller.exportProjectsCsv);
+router.post("/import/csv", controller.importProjectsCsv);
+
 router.get("/:id", controller.getProjectById);
 router.post("/", controller.createProject);
 router.put("/:id", controller.updateProject);

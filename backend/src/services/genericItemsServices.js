@@ -108,5 +108,6 @@ module.exports = {
     getGenericItemById,
     createGenericItem,
     updateGenericItem,
-    deleteGenericItem
+    deleteGenericItem,
+    normalizeGenericItem: normalize
 };

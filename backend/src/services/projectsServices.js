@@ -124,5 +124,6 @@ module.exports = {
     getProjectById,
     createProject,
     updateProject,
-    deleteProject
+    deleteProject,
+    normalizeProject: normalize
 };

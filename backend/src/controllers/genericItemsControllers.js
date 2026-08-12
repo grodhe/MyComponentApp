@@ -1,4 +1,5 @@
 const service = require("../services/genericItemsServices");
+const csvService = require("../services/genericItemsCsvService");
 
 async function getAllGenericItems(req, res) {
 
@@ -112,10 +113,71 @@ async function deleteGenericItem(req, res) {
 
 }
 
+
+async function exportGenericItemsCsv(req, res) {
+
+    try {
+
+        const csv = await csvService.exportGenericItemsCsv();
+
+        const date = new Date().toISOString().slice(0, 10);
+
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="generic_items_export_${date}.csv"`
+        );
+
+        res.send(csv);
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            error: err.message
+        });
+
+    }
+
+}
+
+async function importGenericItemsCsv(req, res) {
+
+    try {
+
+        const csvText = req.body && req.body.csv;
+
+        if (typeof csvText !== "string" || !csvText.trim()) {
+
+            return res.status(400).json({
+                error: "No CSV content was received."
+            });
+
+        }
+
+        const result = await csvService.importGenericItemsCsv(csvText);
+
+        res.json(result);
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(err.status || 500).json({
+            error: err.message
+        });
+
+    }
+
+}
+
 module.exports = {
     getAllGenericItems,
     getGenericItemById,
     createGenericItem,
     updateGenericItem,
-    deleteGenericItem
+    deleteGenericItem,
+    exportGenericItemsCsv,
+    importGenericItemsCsv
 };

@@ -1,5 +1,7 @@
 import api from "../api/api";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export function getProjects() {
 
     return api.get("/projects");
@@ -33,5 +35,17 @@ export function deleteProject(id) {
 export function getProjectStatuses() {
 
     return api.get("/project-statuses");
+
+}
+
+export function getProjectsExportCsvUrl() {
+
+    return `${API_URL}/projects/export/csv`;
+
+}
+
+export function importProjectsCsv(csvText) {
+
+    return api.post("/projects/import/csv", { csv: csvText });
 
 }
