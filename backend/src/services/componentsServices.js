@@ -107,5 +107,9 @@ module.exports = {
     getComponentById,
     createComponent,
     updateComponent,
-    deleteComponent
+    deleteComponent,
+    // Exposed so the CSV import service can build a component record with
+    // the exact same "" -> null / string -> number coercion used by the
+    // normal add/edit form, instead of duplicating that logic.
+    normalizeComponent: normalize
 };

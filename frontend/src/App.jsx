@@ -14,6 +14,7 @@ import LocationDetail from "./pages/LocationDetailPage";
 import Suppliers from "./pages/SuppliersPage";
 import Projects from "./pages/ProjectsPage";
 import ProjectDetail from "./pages/ProjectDetailPage";
+import Utility from "./pages/UtilityPage";
 
 function App() {
 
@@ -81,6 +82,11 @@ function App() {
                 <Route
                     path="/projects/:id"
                     element={<ProjectDetail />}
+                />
+
+                <Route
+                    path="/utility"
+                    element={<Utility />}
                 />
 
             </Routes>

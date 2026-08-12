@@ -57,6 +57,11 @@ const menu = [
     {
         text: "Projects",
         path: "/projects"
+    },
+
+    {
+        text: "Utility",
+        path: "/utility"
     }
 
 ];

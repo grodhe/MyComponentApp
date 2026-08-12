@@ -1,4 +1,5 @@
 const service = require("../services/componentsServices");
+const csvService = require("../services/componentsCsvService");
 
 async function getAllComponents(req, res) {
 
@@ -112,10 +113,71 @@ async function deleteComponent(req, res) {
 
 }
 
+
+async function exportComponentsCsv(req, res) {
+
+    try {
+
+        const csv = await csvService.exportComponentsCsv();
+
+        const date = new Date().toISOString().slice(0, 10);
+
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="components_export_${date}.csv"`
+        );
+
+        res.send(csv);
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            error: err.message
+        });
+
+    }
+
+}
+
+async function importComponentsCsv(req, res) {
+
+    try {
+
+        const csvText = req.body && req.body.csv;
+
+        if (typeof csvText !== "string" || !csvText.trim()) {
+
+            return res.status(400).json({
+                error: "No CSV content was received."
+            });
+
+        }
+
+        const result = await csvService.importComponentsCsv(csvText);
+
+        res.json(result);
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(err.status || 500).json({
+            error: err.message
+        });
+
+    }
+
+}
+
 module.exports = {
     getAllComponents,
     getComponentById,
     createComponent,
     updateComponent,
-    deleteComponent
+    deleteComponent,
+    exportComponentsCsv,
+    importComponentsCsv
 };
