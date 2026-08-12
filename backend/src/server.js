@@ -46,6 +46,9 @@ app.use("/api/components", componentRoutes);
 
 app.use("/api/manufacturers", manufacturersRoutes);
 
+app.use("/api/components/:componentId/transactions", componentTransactionsRoutes);
+app.use("/api/inventory-transactions", inventoryTransactionsRoutes);
+
 app.use("/api/categories", categoriesRoutes);
 
 app.use("/api/locations", locationsRoutes);
