@@ -7,6 +7,7 @@ then
    mkdir backend
    cd /volume1/MyDockerImages/MyComponentApp
    cp   /volume1/MyDockerImages/bck/.env  /volume1/MyDockerImages/MyComponentApp/.env
+   rm /volume1/MyDockerImages/MyComponentApp/docker-compose.yml
    ln -s /volume1/MyDockerImages/MyComponentApp/docker-compose-prod.yml /volume1/MyDockerImages/MyComponentApp/docker-compose.yml
 elif [ "$1" = "-help" ]
 then
