@@ -7,8 +7,11 @@ import {
     Paper,
     Typography,
     List,
+    ListItem,
     ListItemButton,
     ListItemText,
+    IconButton,
+    Tooltip,
     Stack
 } from "@mui/material";
 
@@ -16,10 +19,14 @@ import Inventory2Icon from "@mui/icons-material/Inventory2";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineOutlined";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 
 import { getComponents } from "../services/componentService";
 import { getAllTransactions } from "../services/inventoryTransactionService";
 import { getProjects } from "../services/projectService";
+import { createShoppingListItem } from "../services/shoppingListService";
+
+import ShoppingListItemDialog from "../components/dialogs/ShoppingListItemDialog";
 
 const RECENT_LIMIT = 8;
 
@@ -110,6 +117,9 @@ function DashboardPage() {
     const [transactions, setTransactions] = useState([]);
     const [projects, setProjects] = useState([]);
 
+    const [shoppingDialogOpen, setShoppingDialogOpen] = useState(false);
+    const [shoppingInitialValues, setShoppingInitialValues] = useState(null);
+
     async function load() {
 
         try {
@@ -164,6 +174,38 @@ function DashboardPage() {
     const recentlyUsed = transactions
         .filter((t) => t.quantity_delta < 0)
         .slice(0, RECENT_LIMIT);
+
+    // Prefills the quantity with however many are actually short (never
+    // less than 1), so clicking the cart icon on a low-stock/out-of-stock
+    // row is a single click for the common case instead of a full form.
+    function handleAddToShoppingList(component) {
+
+        const shortfall = (component.minimum_quantity ?? 0) - (component.quantity ?? 0);
+
+        setShoppingInitialValues({
+            component_id: component.id,
+            quantity_needed: Math.max(1, shortfall)
+        });
+
+        setShoppingDialogOpen(true);
+
+    }
+
+    async function handleSaveShoppingItem(item) {
+
+        try {
+
+            await createShoppingListItem(item);
+            setShoppingDialogOpen(false);
+
+        } catch (err) {
+
+            console.error("Failed to add to shopping list:", err);
+            alert(`Failed to add to shopping list: ${err.message}`);
+
+        }
+
+    }
 
     return (
 
@@ -222,16 +264,35 @@ function DashboardPage() {
                         emptyText="Nothing is running low."
                         renderItem={(c) => (
 
-                            <ListItemButton
+                            <ListItem
                                 key={c.id}
-                                component={RouterLink}
-                                to={`/components/${c.id}`}
+                                disablePadding
+                                secondaryAction={
+                                    <Tooltip title="Add to shopping list">
+                                        <IconButton
+                                            edge="end"
+                                            size="small"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleAddToShoppingList(c);
+                                            }}
+                                        >
+                                            <AddShoppingCartIcon fontSize="small" />
+                                        </IconButton>
+                                    </Tooltip>
+                                }
                             >
-                                <ListItemText
-                                    primary={c.part_name ? `${c.part_number} — ${c.part_name}` : c.part_number}
-                                    secondary={`Qty: ${c.quantity} (min ${c.minimum_quantity})`}
-                                />
-                            </ListItemButton>
+                                <ListItemButton
+                                    component={RouterLink}
+                                    to={`/components/${c.id}`}
+                                >
+                                    <ListItemText
+                                        primary={c.part_name ? `${c.part_number} — ${c.part_name}` : c.part_number}
+                                        secondary={`Qty: ${c.quantity} (min ${c.minimum_quantity})`}
+                                    />
+                                </ListItemButton>
+                            </ListItem>
 
                         )}
                     />
@@ -242,16 +303,35 @@ function DashboardPage() {
                         emptyText="Nothing is out of stock."
                         renderItem={(c) => (
 
-                            <ListItemButton
+                            <ListItem
                                 key={c.id}
-                                component={RouterLink}
-                                to={`/components/${c.id}`}
+                                disablePadding
+                                secondaryAction={
+                                    <Tooltip title="Add to shopping list">
+                                        <IconButton
+                                            edge="end"
+                                            size="small"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleAddToShoppingList(c);
+                                            }}
+                                        >
+                                            <AddShoppingCartIcon fontSize="small" />
+                                        </IconButton>
+                                    </Tooltip>
+                                }
                             >
-                                <ListItemText
-                                    primary={c.part_name ? `${c.part_number} — ${c.part_name}` : c.part_number}
-                                    secondary="Qty: 0"
-                                />
-                            </ListItemButton>
+                                <ListItemButton
+                                    component={RouterLink}
+                                    to={`/components/${c.id}`}
+                                >
+                                    <ListItemText
+                                        primary={c.part_name ? `${c.part_number} — ${c.part_name}` : c.part_number}
+                                        secondary="Qty: 0"
+                                    />
+                                </ListItemButton>
+                            </ListItem>
 
                         )}
                     />
@@ -332,6 +412,20 @@ function DashboardPage() {
                 </Grid>
 
             </Grid>
+
+            <ShoppingListItemDialog
+
+                open={shoppingDialogOpen}
+
+                mode="add"
+
+                initialValues={shoppingInitialValues}
+
+                onClose={() => setShoppingDialogOpen(false)}
+
+                onSave={handleSaveShoppingItem}
+
+            />
 
         </Box>
 

@@ -1,40 +1,38 @@
 const { pool, schema } = require("./baseRepository");
 
 const SELECT_FIELDS = `
-    pc.id,
+    sl.id,
 
-    pc.project_id,
-
-    pc.component_id,
+    sl.component_id,
     c.part_number,
     c.part_name,
-    c.component_value,
-    c.quantity AS available_quantity,
+    c.quantity AS component_quantity,
 
-    pc.quantity,
-    pc.reference_designators,
-    pc.notes
+    sl.description,
+    sl.quantity_needed,
+    sl.notes,
+
+    sl.created_at
 `;
 
 const JOINS = `
-    FROM ${schema}.project_components pc
+    FROM ${schema}.shopping_list_items sl
 
     LEFT JOIN ${schema}.components c
-        ON c.id = pc.component_id
+        ON c.id = sl.component_id
 `;
 
-async function getAllForProject(projectId) {
+async function getAll() {
 
     const sql = `
         SELECT
             ${SELECT_FIELDS}
         ${JOINS}
-        WHERE pc.project_id = $1
         ORDER BY
-            c.part_number;
+            sl.created_at DESC;
     `;
 
-    const result = await pool.query(sql, [projectId]);
+    const result = await pool.query(sql);
 
     return result.rows;
 
@@ -46,7 +44,7 @@ async function getById(id) {
         SELECT
             ${SELECT_FIELDS}
         ${JOINS}
-        WHERE pc.id = $1;
+        WHERE sl.id = $1;
     `;
 
     const result = await pool.query(sql, [id]);
@@ -55,26 +53,25 @@ async function getById(id) {
 
 }
 
-async function create(projectId, data) {
+async function create(data) {
 
     const sql = `
-        INSERT INTO ${schema}.project_components (
-            project_id,
+        INSERT INTO ${schema}.shopping_list_items (
             component_id,
-            quantity,
-            reference_designators,
-            notes
+            description,
+            quantity_needed,
+            notes,
+            created_at
         ) VALUES (
-            $1, $2, $3, $4, $5
+            $1, $2, $3, $4, NOW()
         )
         RETURNING id;
     `;
 
     const result = await pool.query(sql, [
-        projectId,
         data.component_id,
-        data.quantity,
-        data.reference_designators,
+        data.description,
+        data.quantity_needed,
         data.notes
     ]);
 
@@ -85,11 +82,11 @@ async function create(projectId, data) {
 async function update(id, data) {
 
     const sql = `
-        UPDATE ${schema}.project_components
+        UPDATE ${schema}.shopping_list_items
         SET
             component_id = $1,
-            quantity = $2,
-            reference_designators = $3,
+            description = $2,
+            quantity_needed = $3,
             notes = $4
         WHERE id = $5
         RETURNING id;
@@ -97,8 +94,8 @@ async function update(id, data) {
 
     const result = await pool.query(sql, [
         data.component_id,
-        data.quantity,
-        data.reference_designators,
+        data.description,
+        data.quantity_needed,
         data.notes,
         id
     ]);
@@ -114,7 +111,7 @@ async function update(id, data) {
 async function remove(id) {
 
     const sql = `
-        DELETE FROM ${schema}.project_components
+        DELETE FROM ${schema}.shopping_list_items
         WHERE id = $1
         RETURNING id;
     `;
@@ -126,7 +123,7 @@ async function remove(id) {
 }
 
 module.exports = {
-    getAllForProject,
+    getAll,
     getById,
     create,
     update,

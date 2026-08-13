@@ -6,6 +6,7 @@ import DashboardPage from "./pages/DashboardPage";
 import ComponentsPage from "./pages/ComponentsPage";
 import ComponentDetail from "./pages/ComponentDetailPage";
 import InventoryTransactions from "./pages/InventoryTransactionsPage";
+import ShoppingList from "./pages/ShoppingListPage";
 import GenericItems from "./pages/GenericItemsPage";
 import Manufacturers from "./pages/ManufacturersPage";
 import Categories from "./pages/CategoriesPage";
@@ -42,6 +43,11 @@ function App() {
                 <Route
                     path="/inventory-transactions"
                     element={<InventoryTransactions />}
+                />
+
+                <Route
+                    path="/shopping-list"
+                    element={<ShoppingList />}
                 />
 
                 <Route

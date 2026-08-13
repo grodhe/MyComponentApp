@@ -50,6 +50,11 @@ const menu = [
     },
 
     {
+        text: "Shopping List",
+        path: "/shopping-list"
+    },
+
+    {
         text: "Generic Items",
         path: "/generic-items"
     },

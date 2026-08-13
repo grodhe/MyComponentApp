@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box, Button, Chip, Stack, Tooltip, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 
 import {
     getProjectComponents,
@@ -20,9 +23,12 @@ import {
     deleteProjectGenericItem
 } from "../../services/projectGenericItemService";
 
+import { createShoppingListItem } from "../../services/shoppingListService";
+
 import DataTable from "../common/DataTable";
 import ConfirmDialog from "../common/ConfirmDialog";
 import PartDialog from "../dialogs/PartDialog";
+import ShoppingListItemDialog from "../dialogs/ShoppingListItemDialog";
 
 // Merges project_components + project_generic_items into one list of rows
 // the table can render. Each row is tagged with `_partType` so we know
@@ -37,7 +43,8 @@ function toRows(components, genericItems) {
         id: `component-${c.id}`,
         _rawId: c.id,
         displayName: `${c.part_number} - ${c.part_name}`,
-        detail: c.component_value ?? ""
+        detail: c.component_value ?? "",
+        available_quantity: c.available_quantity
     }));
 
     const genericRows = genericItems.map((g) => ({
@@ -47,7 +54,8 @@ function toRows(components, genericItems) {
         _rawId: g.id,
         displayName: g.item_name,
         reference_designators: "",
-        detail: g.unit ?? ""
+        detail: g.unit ?? "",
+        available_quantity: g.available_quantity
     }));
 
     return [...componentRows, ...genericRows].sort((a, b) =>
@@ -66,6 +74,9 @@ function ProjectPartsTab({ projectId }) {
     const [selectedEntry, setSelectedEntry] = useState(null);
 
     const [deleteTarget, setDeleteTarget] = useState(null);
+
+    const [shoppingDialogOpen, setShoppingDialogOpen] = useState(false);
+    const [shoppingInitialValues, setShoppingInitialValues] = useState(null);
 
     async function load() {
 
@@ -184,6 +195,66 @@ function ProjectPartsTab({ projectId }) {
 
     }
 
+    // Prefills the shopping list dialog for a short row -- linked to the
+    // component when this is a component row (so it stays a live link),
+    // or a free-text description when it's a generic item (the shopping
+    // list doesn't have a generic-item link, just component_id or text).
+    function handleAddShortfall(row) {
+
+        const shortfall = row.quantity - (row.available_quantity ?? 0);
+
+        setShoppingInitialValues(
+            row._partType === "component"
+                ? {
+                    // row._rawId is the project_components *junction* row id;
+                    // row.component_id is the actual inventory component's
+                    // id, which is what the shopping list needs to link to.
+                    component_id: row.component_id,
+                    quantity_needed: Math.max(1, shortfall)
+                }
+                : {
+                    description: row.displayName,
+                    quantity_needed: Math.max(1, shortfall)
+                }
+        );
+
+        setShoppingDialogOpen(true);
+
+    }
+
+    async function handleSaveShoppingItem(item) {
+
+        try {
+
+            await createShoppingListItem(item);
+            setShoppingDialogOpen(false);
+
+        } catch (err) {
+
+            console.error("Failed to add to shopping list:", err);
+            alert(`Failed to add to shopping list: ${err.message}`);
+
+        }
+
+    }
+
+    const rows = toRows(components, genericItems);
+
+    // A row "has enough" when the linked component/generic item's current
+    // stock covers the quantity this project needs. Rows with no
+    // available_quantity at all (shouldn't normally happen -- both joins
+    // are LEFT JOINs) are treated as unavailable rather than silently
+    // passing.
+    function hasEnough(row) {
+
+        return row.available_quantity !== null
+            && row.available_quantity !== undefined
+            && row.available_quantity >= row.quantity;
+
+    }
+
+    const shortageCount = rows.filter((row) => !hasEnough(row)).length;
+
     const columns = [
 
         {
@@ -200,9 +271,41 @@ function ProjectPartsTab({ projectId }) {
 
         {
             field: "quantity",
-            headerName: "Qty",
+            headerName: "Required",
             type: "number",
             width: 90
+        },
+
+        {
+            field: "available_quantity",
+            headerName: "Available",
+            type: "number",
+            width: 100
+        },
+
+        {
+            field: "status",
+            headerName: "Status",
+            width: 80,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => (
+
+                hasEnough(params.row) ? (
+
+                    <Tooltip title="Enough in stock">
+                        <CheckCircleIcon color="success" fontSize="small" />
+                    </Tooltip>
+
+                ) : (
+
+                    <Tooltip title={`Short by ${params.row.quantity - (params.row.available_quantity ?? 0)}`}>
+                        <CancelIcon color="error" fontSize="small" />
+                    </Tooltip>
+
+                )
+
+            )
         },
 
         {
@@ -220,29 +323,46 @@ function ProjectPartsTab({ projectId }) {
         {
             field: "actions",
             type: "actions",
-            width: 90,
-            getActions: (params) => [
+            width: 130,
+            getActions: (params) => {
 
-                <GridActionsCellItem
-                    key="edit"
-                    icon={<EditIcon />}
-                    label="Edit"
-                    onClick={() => handleEdit(params.row)}
-                />,
+                const actions = [
 
-                <GridActionsCellItem
-                    key="delete"
-                    icon={<DeleteIcon />}
-                    label="Delete"
-                    onClick={() => setDeleteTarget(params.row)}
-                />
+                    <GridActionsCellItem
+                        key="edit"
+                        icon={<EditIcon />}
+                        label="Edit"
+                        onClick={() => handleEdit(params.row)}
+                    />,
 
-            ]
+                    <GridActionsCellItem
+                        key="delete"
+                        icon={<DeleteIcon />}
+                        label="Delete"
+                        onClick={() => setDeleteTarget(params.row)}
+                    />
+
+                ];
+
+                if (!hasEnough(params.row)) {
+
+                    actions.push(
+                        <GridActionsCellItem
+                            key="shop"
+                            icon={<AddShoppingCartIcon />}
+                            label="Add shortfall to shopping list"
+                            onClick={() => handleAddShortfall(params.row)}
+                        />
+                    );
+
+                }
+
+                return actions;
+
+            }
         }
 
     ];
-
-    const rows = toRows(components, genericItems);
 
     return (
 
@@ -257,6 +377,17 @@ function ProjectPartsTab({ projectId }) {
                 <Typography variant="h6">
                     Parts
                 </Typography>
+
+                {rows.length > 0 && (
+
+                    <Chip
+                        size="small"
+                        sx={{ ml: 2 }}
+                        color={shortageCount === 0 ? "success" : "error"}
+                        label={shortageCount === 0 ? "Ready to build" : `${shortageCount} item${shortageCount === 1 ? "" : "s"} short`}
+                    />
+
+                )}
 
                 <Box sx={{ flexGrow: 1 }} />
 
@@ -296,6 +427,20 @@ function ProjectPartsTab({ projectId }) {
                 confirmColor="error"
                 onConfirm={handleConfirmDelete}
                 onCancel={() => setDeleteTarget(null)}
+            />
+
+            <ShoppingListItemDialog
+
+                open={shoppingDialogOpen}
+
+                mode="add"
+
+                initialValues={shoppingInitialValues}
+
+                onClose={() => setShoppingDialogOpen(false)}
+
+                onSave={handleSaveShoppingItem}
+
             />
 
         </Box>
