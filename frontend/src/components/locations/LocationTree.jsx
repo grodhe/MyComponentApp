@@ -251,7 +251,10 @@ function LocationTreeNode({ node, depth, actions }) {
                     )}
 
                     <ListItemIcon sx={{ minWidth: 32 }}>
-                        <Icon fontSize="small" />
+                        <Icon
+                            fontSize="small"
+                            sx={{ color: node.nodeType === "location" ? "#FFCA28" : undefined }}
+                        />
                     </ListItemIcon>
 
                     <ListItemText

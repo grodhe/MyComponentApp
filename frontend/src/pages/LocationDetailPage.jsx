@@ -167,7 +167,7 @@ function LocationDetailPage() {
                         to={`/location/${loc.id}`}
                     >
                         <ListItemIcon sx={{ minWidth: 32 }}>
-                            <FolderIcon fontSize="small" />
+                            <FolderIcon fontSize="small" sx={{ color: "#FFCA28" }} />
                         </ListItemIcon>
                         <ListItemText primary={loc.name} />
                     </ListItemButton>

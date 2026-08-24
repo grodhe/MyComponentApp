@@ -238,7 +238,7 @@ function ProjectsPage() {
 
                     <Button
                         variant="outlined"
-                        startIcon={<FolderOpenIcon />}
+                        startIcon={<FolderOpenIcon sx={{ color: "#FFCA28" }} />}
                         onClick={() => handleOpenDetail(selectedProject)}
                         disabled={!selectedProject}
                     >

@@ -247,7 +247,7 @@ function DashboardPage() {
                     <StatCard
                         label="Active Projects"
                         value={activeProjects.length}
-                        color="success.main"
+                        color="#FFCA28"
                         icon={<FolderOpenIcon fontSize="large" />}
                     />
                 </Grid>
