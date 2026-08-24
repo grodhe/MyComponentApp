@@ -1,4 +1,4 @@
-const { pool, schema } = require("./baseRepository");
+const { pool, schema, locationPathCte } = require("./baseRepository");
 
 const SELECT_FIELDS = `
     c.id,
@@ -31,7 +31,7 @@ const SELECT_FIELDS = `
     cat.name AS category,
 
     c.location_id,
-    l.name AS location
+    l.path AS location
 `;
 
 const JOINS = `
@@ -43,13 +43,14 @@ const JOINS = `
     LEFT JOIN ${schema}.categories cat
         ON cat.id = c.category_id
 
-    LEFT JOIN ${schema}.locations l
+    LEFT JOIN location_path l
         ON l.id = c.location_id
 `;
 
 async function getAll() {
 
     const sql = `
+        ${locationPathCte()}
         SELECT
             ${SELECT_FIELDS}
         ${JOINS}
@@ -66,6 +67,7 @@ async function getAll() {
 async function getById(id) {
 
     const sql = `
+        ${locationPathCte()}
         SELECT
             ${SELECT_FIELDS}
         ${JOINS}

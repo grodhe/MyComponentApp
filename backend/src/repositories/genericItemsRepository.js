@@ -1,4 +1,4 @@
-const { pool, schema } = require("./baseRepository");
+const { pool, schema, locationPathCte } = require("./baseRepository");
 
 const SELECT_FIELDS = `
     gi.id,
@@ -10,7 +10,7 @@ const SELECT_FIELDS = `
     cat.name AS category,
 
     gi.location_id,
-    l.name AS location,
+    l.path AS location,
 
     gi.supplier_id,
     s.name AS supplier,
@@ -35,7 +35,7 @@ const JOINS = `
     LEFT JOIN ${schema}.categories cat
         ON cat.id = gi.category_id
 
-    LEFT JOIN ${schema}.locations l
+    LEFT JOIN location_path l
         ON l.id = gi.location_id
 
     LEFT JOIN ${schema}.suppliers s
@@ -45,6 +45,7 @@ const JOINS = `
 async function getAll() {
 
     const sql = `
+        ${locationPathCte()}
         SELECT
             ${SELECT_FIELDS}
         ${JOINS}
@@ -61,6 +62,7 @@ async function getAll() {
 async function getById(id) {
 
     const sql = `
+        ${locationPathCte()}
         SELECT
             ${SELECT_FIELDS}
         ${JOINS}
@@ -70,24 +72,6 @@ async function getById(id) {
     const result = await pool.query(sql, [id]);
 
     return result.rows[0];
-
-}
-
-// Used by the "what's stored here" view on a location's detail page.
-async function getByLocationId(locationId) {
-
-    const sql = `
-        SELECT
-            ${SELECT_FIELDS}
-        ${JOINS}
-        WHERE gi.location_id = $1
-        ORDER BY
-            gi.name;
-    `;
-
-    const result = await pool.query(sql, [locationId]);
-
-    return result.rows;
 
 }
 
@@ -197,7 +181,6 @@ async function remove(id) {
 module.exports = {
     getAll,
     getById,
-    getByLocationId,
     create,
     update,
     remove
