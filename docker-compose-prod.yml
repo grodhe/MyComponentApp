@@ -56,7 +56,7 @@ services:
     volumes:
       - ./data:/data
       - ./logs/backend:/app/logs
-      -  /volume1/InventoryPhoto/:/InventoryPhoto
+      - ../HobbyistPhotoUploads:/InventoryPhoto
 
 
     networks:
