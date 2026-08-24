@@ -1,11 +1,21 @@
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
+
+const requireAuth = require("./middleware/requireAuth");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
-app.use(cors());
+// `origin: true` reflects whatever origin made the request instead of a
+// fixed one -- needed alongside `credentials: true` so the session cookie
+// actually gets sent/accepted, whether the frontend and backend end up on
+// the same origin (prod, behind the reverse proxy) or different ports
+// (local dev).
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.get("/api/health", (req, res) => {
     res.json({
@@ -13,6 +23,12 @@ app.get("/api/health", (req, res) => {
         message: "Component API is running"
     });
 });
+
+// Login/logout have to be public (you don't have a session yet when
+// logging in). Everything else registered after the requireAuth line
+// below needs a valid session cookie.
+app.use("/api/auth", authRoutes);
+app.use("/api", requireAuth);
 
 const componentRoutes = require("./routes/componentsRoutes");
 

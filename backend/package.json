@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@mui/x-data-grid": "^9.10.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.2",
     "pg": "^8.22.0",
     "react-router-dom": "^7.18.2"
   },

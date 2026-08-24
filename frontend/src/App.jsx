@@ -1,6 +1,10 @@
 import { Routes, Route } from "react-router-dom";
+import { Box, CircularProgress } from "@mui/material";
+
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
 import Layout from "./components/layout/Layout";
+import LoginPage from "./pages/LoginPage";
 
 import DashboardPage from "./pages/DashboardPage";
 import ComponentsPage from "./pages/ComponentsPage";
@@ -18,6 +22,49 @@ import ProjectDetail from "./pages/ProjectDetailPage";
 import Utility from "./pages/UtilityPage";
 
 function App() {
+
+    return (
+
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
+
+    );
+
+}
+
+// Gates the whole app on session status -- checked once on load (see
+// AuthContext) and re-checked reactively whenever any API call comes back
+// 401. Nothing under Layout/Routes ever renders without a valid session,
+// so no individual page needs its own auth check.
+function AppContent() {
+
+    const { status } = useAuth();
+
+    if (status === "loading") {
+
+        return (
+
+            <Box
+                sx={{
+                    minHeight: "100vh",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                }}
+            >
+                <CircularProgress />
+            </Box>
+
+        );
+
+    }
+
+    if (status === "unauthenticated") {
+
+        return <LoginPage />;
+
+    }
 
     return (
 
