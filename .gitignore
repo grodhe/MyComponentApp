@@ -2,6 +2,7 @@
 // Posted by Hamid Shoja
 // Retrieved 2026-07-31, License - CC BY-SA 4.0
 
+
 # Logs
 logs
 *.log
@@ -19,6 +20,9 @@ jspm_packages/
 
 # Distribution directories
 dist/
+
+# Picture  directory
+uploads/
 
 # Typescript v1 declaration files
 typings/

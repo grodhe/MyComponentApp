@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import {
@@ -23,8 +23,16 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutlined";
 import PrintIcon from "@mui/icons-material/Print";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import AddAPhotoIcon from "@mui/icons-material/AddAPhoto";
+import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 
-import { getComponent, updateComponent } from "../services/componentService";
+import {
+    getComponent,
+    updateComponent,
+    getComponentPhotoUrl,
+    uploadComponentPhoto,
+    deleteComponentPhoto
+} from "../services/componentService";
 import { getComponentTransactions, createTransaction } from "../services/inventoryTransactionService";
 import { PUBLIC_APP_BASE_URL } from "../config";
 
@@ -56,6 +64,160 @@ function DetailField({ label, value }) {
             </Typography>
 
         </Grid>
+
+    );
+
+}
+
+// Shows the component's photo if one's been uploaded, a placeholder icon
+// if not, and Upload/Change/Remove controls underneath. Whether a photo
+// exists isn't tracked in the database at all -- this just tries to load
+// the image and falls back to the placeholder on a 404, so there's
+// nothing to keep in sync.
+function ComponentPhoto({ component, onChanged }) {
+
+    const [photoOk, setPhotoOk] = useState(true);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
+
+    // Re-arm optimism whenever the component (or its updated_at, which
+    // changes on every upload/delete) changes, so a fresh upload is
+    // reflected instead of sticking with a stale "no photo" result.
+    useEffect(() => {
+
+        setPhotoOk(true);
+
+    }, [component.id, component.updated_at]);
+
+    async function handleFileChange(event) {
+
+        const file = event.target.files?.[0];
+
+        // Allows re-selecting the exact same filename later (e.g. after
+        // removing a photo and wanting to re-upload it) -- browsers don't
+        // fire onChange again for an unchanged file list otherwise.
+        event.target.value = "";
+
+        if (!file)
+            return;
+
+        setUploading(true);
+
+        try {
+
+            await uploadComponentPhoto(component.id, file);
+            setPhotoOk(true);
+            onChanged();
+
+        } catch (err) {
+
+            console.error("Failed to upload photo:", err);
+            alert(`Failed to upload photo: ${err.message}`);
+
+        } finally {
+
+            setUploading(false);
+
+        }
+
+    }
+
+    async function handleRemove() {
+
+        try {
+
+            await deleteComponentPhoto(component.id);
+            setPhotoOk(false);
+            onChanged();
+
+        } catch (err) {
+
+            console.error("Failed to remove photo:", err);
+            alert(`Failed to remove photo: ${err.message}`);
+
+        }
+
+    }
+
+    const photoUrl = getComponentPhotoUrl(component.id, component.updated_at);
+
+    return (
+
+        <Stack alignItems="center" spacing={1}>
+
+            <Box
+                sx={{
+                    width: 160,
+                    height: 140,
+                    borderRadius: 1,
+                    overflow: "hidden",
+                    bgcolor: "grey.100",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "1px solid",
+                    borderColor: "divider",
+                    flexShrink: 0
+                }}
+            >
+
+                {photoOk ? (
+
+                    // "contain" (not "cover") so the whole photo is always
+                    // visible -- "cover" was cropping/zooming into
+                    // non-square photos (e.g. a battery shot wider than
+                    // it is tall) instead of showing the full picture.
+                    <Box
+                        component="img"
+                        src={photoUrl}
+                        alt={component.part_number}
+                        onError={() => setPhotoOk(false)}
+                        sx={{ width: "100%", height: "100%", objectFit: "contain" }}
+                    />
+
+                ) : (
+
+                    <ImageNotSupportedIcon color="disabled" fontSize="large" />
+
+                )}
+
+            </Box>
+
+            <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                ref={fileInputRef}
+                onChange={handleFileChange}
+            />
+
+            <Stack direction="row" spacing={1}>
+
+                <Button
+                    size="small"
+                    startIcon={<AddAPhotoIcon fontSize="small" />}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                >
+                    {photoOk ? "Change" : "Upload"}
+                </Button>
+
+                {photoOk && (
+
+                    <Button
+                        size="small"
+                        color="error"
+                        onClick={handleRemove}
+                        disabled={uploading}
+                    >
+                        Remove
+                    </Button>
+
+                )}
+
+            </Stack>
+
+        </Stack>
 
     );
 
@@ -209,6 +371,12 @@ function ComponentDetailPage() {
 
                 <>
 
+                    <Stack direction="row" spacing={3} alignItems="flex-start" sx={{ mb: 1 }}>
+
+                        <ComponentPhoto component={component} onChanged={load} />
+
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+
                     <Stack
                         direction="row"
                         alignItems="center"
@@ -318,6 +486,10 @@ function ComponentDetailPage() {
                         >
                             Print Label
                         </Button>
+
+                    </Stack>
+
+                        </Box>
 
                     </Stack>
 

@@ -1,3 +1,5 @@
+const path = require("path");
+
 require("dotenv").config();
 
 module.exports = {
@@ -53,6 +55,20 @@ module.exports = {
         secret: process.env.SESSION_SECRET,
         cookieName: "hobbyist_session",
         maxAgeMs: 1000 * 60 * 60 * 24 * 7 // 7 days
+
+    },
+
+    // Component photos are stored on disk, not in Postgres. UPLOADS_DIR
+    // should point at a Docker volume (e.g. "/app/uploads") -- otherwise
+    // every photo is lost the next time the backend container is rebuilt.
+    // Defaults to a local "uploads" folder next to the backend source for
+    // running outside Docker.
+    uploads: {
+
+        componentsDir: path.resolve(
+            process.env.UPLOADS_DIR || path.join(__dirname, "../../uploads"),
+            "components"
+        )
 
     }
 

@@ -1,3 +1,5 @@
+set search_path = "compo";
+
 -- Shopping list: components (or free-text items not in inventory) that
 -- need to be bought. Idempotent -- safe to run against a database that
 -- already has this table.

@@ -193,10 +193,20 @@ async function remove(id) {
 
 }
 
+async function touchUpdatedAt(id) {
+
+    await pool.query(
+        `UPDATE ${schema}.components SET updated_at = NOW() WHERE id = $1`,
+        [id]
+    );
+
+}
+
 module.exports = {
     getAll,
     getById,
     create,
     update,
-    remove
+    remove,
+    touchUpdatedAt
 };

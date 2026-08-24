@@ -5,6 +5,10 @@ require("dotenv").config();
 
 const requireAuth = require("./middleware/requireAuth");
 const authRoutes = require("./routes/authRoutes");
+const fs = require("fs");
+const config = require("./config/app");
+
+fs.mkdirSync(config.uploads.componentsDir, { recursive: true });
 
 const app = express();
 

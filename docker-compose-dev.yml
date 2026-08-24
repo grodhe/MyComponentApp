@@ -57,6 +57,7 @@ services:
     volumes:
       - ./data:/data
       - ./logs/backend:/app/logs
+      -  ./uploads:/InventoryPhoto
 
     networks:
       - component-network
