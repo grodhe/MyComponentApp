@@ -58,6 +58,18 @@ module.exports = {
 
     },
 
+    auth: {
+
+        // Lets a deployment skip the Synology DSM login entirely -- for
+        // anyone running this without a Synology NAS (e.g. a plain
+        // GitHub checkout on their own machine). Defaults to enabled
+        // (secure by default); set AUTH_ENABLED=false in the backend's
+        // .env / docker-compose environment to turn login off. See
+        // middleware/requireAuth.js for where this is actually enforced.
+        enabled: process.env.AUTH_ENABLED !== "false"
+
+    },
+
     // Component photos are stored on disk, not in Postgres. UPLOADS_DIR
     // should point at a Docker volume (e.g. "/app/uploads") -- otherwise
     // every photo is lost the next time the backend container is rebuilt.

@@ -43,6 +43,9 @@ services:
     container_name: mycomponent-backend
     image: mycomponent-backend:dev
 
+    environment:
+       - AUTH_ENABLED=false
+
     build:
       context: ./backend
 

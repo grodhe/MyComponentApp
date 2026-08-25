@@ -18,6 +18,12 @@ export function AuthProvider({ children }) {
     const [status, setStatus] = useState("loading");
     const [username, setUsername] = useState(null);
 
+    // Whether login is actually required for this deployment (see
+    // backend AUTH_ENABLED). Defaults to true until we hear otherwise,
+    // so the UI never briefly flashes a Sign Out button that would
+    // strand someone with no way to log back in.
+    const [authEnabled, setAuthEnabled] = useState(true);
+
     async function checkExistingSession() {
 
         try {
@@ -25,6 +31,7 @@ export function AuthProvider({ children }) {
             const me = await getMe();
 
             setUsername(me.username);
+            setAuthEnabled(me.authEnabled !== false);
             setStatus("authenticated");
 
         } catch (err) {
@@ -84,7 +91,7 @@ export function AuthProvider({ children }) {
 
     return (
 
-        <AuthContext.Provider value={{ status, username, login, logout }}>
+        <AuthContext.Provider value={{ status, username, authEnabled, login, logout }}>
             {children}
         </AuthContext.Provider>
 

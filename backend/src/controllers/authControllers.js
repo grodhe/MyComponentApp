@@ -94,7 +94,15 @@ function logout(req, res) {
 
 function me(req, res) {
 
-    res.json({ username: req.user.username });
+    // authEnabled lets the frontend tell "really logged in" apart from
+    // "login is turned off, so everyone's automatically in" -- used to
+    // hide the Sign Out button in that second case (signing out would
+    // otherwise strand you on a login screen with no DSM server to log
+    // back in against).
+    res.json({
+        username: req.user.username,
+        authEnabled: config.auth.enabled
+    });
 
 }
 

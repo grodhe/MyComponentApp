@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 
 function Header() {
 
-    const { username, logout } = useAuth();
+    const { username, authEnabled, logout } = useAuth();
 
     return (
 
@@ -26,26 +26,30 @@ function Header() {
 
                 <Box sx={{ flexGrow: 1 }} />
 
-                <Stack direction="row" spacing={2} alignItems="center">
+                {authEnabled && (
 
-                    {username && (
+                    <Stack direction="row" spacing={2} alignItems="center">
 
-                        <Typography variant="body2">
-                            {username}
-                        </Typography>
+                        {username && (
 
-                    )}
+                            <Typography variant="body2">
+                                {username}
+                            </Typography>
 
-                    <Button
-                        color="inherit"
-                        size="small"
-                        startIcon={<LogoutIcon />}
-                        onClick={logout}
-                    >
-                        Sign Out
-                    </Button>
+                        )}
 
-                </Stack>
+                        <Button
+                            color="inherit"
+                            size="small"
+                            startIcon={<LogoutIcon />}
+                            onClick={logout}
+                        >
+                            Sign Out
+                        </Button>
+
+                    </Stack>
+
+                )}
 
             </Toolbar>
 

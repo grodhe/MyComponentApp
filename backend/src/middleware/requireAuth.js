@@ -7,6 +7,19 @@ const config = require("../config/app");
 // logout, and /api/health are mounted before it and stay public.
 function requireAuth(req, res, next) {
 
+    // AUTH_ENABLED=false (see config/app.js) skips login checking
+    // entirely -- every route behaves as if a fixed local user is
+    // already signed in. This is the one place that's enforced, so it
+    // applies uniformly whether requireAuth is reached via the global
+    // "/api" gate in server.js or directly on a single route (like
+    // GET /api/auth/me).
+    if (!config.auth.enabled) {
+
+        req.user = { username: "local" };
+        return next();
+
+    }
+
     const token = req.cookies && req.cookies[config.session.cookieName];
 
     if (!token) {
