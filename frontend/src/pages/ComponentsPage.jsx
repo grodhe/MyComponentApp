@@ -8,10 +8,12 @@ import {
     getComponents,
     createComponent,
     updateComponent,
-    deleteComponent
+    deleteComponent,
+    getComponentPhotoUrl
 } from "../services/componentService";
 
 import DataTable from "../components/common/DataTable";
+import PhotoThumbnail from "../components/common/PhotoThumbnail";
 
 import CrudToolbar from "../components/common/CrudToolbar";
 
@@ -143,6 +145,21 @@ function ComponentsPage() {
     }
 
     const columns = [
+
+        {
+            field: "photo",
+            headerName: "",
+            width: 52,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => (
+                <PhotoThumbnail
+                    src={getComponentPhotoUrl(params.row.id, params.row.updated_at)}
+                    alt={params.row.part_number}
+                    size={36}
+                />
+            )
+        },
 
         {
             field: "part_number",

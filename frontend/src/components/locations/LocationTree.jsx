@@ -26,6 +26,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import PrintIcon from "@mui/icons-material/Print";
 import AddIcon from "@mui/icons-material/Add";
 
+import PhotoThumbnail from "../common/PhotoThumbnail";
+import { getComponentPhotoUrl } from "../../services/componentService";
+import { getGenericItemPhotoUrl } from "../../services/genericItemService";
+
 const NODE_ICONS = {
     location: FolderIcon,
     component: MemoryIcon,
@@ -251,10 +255,32 @@ function LocationTreeNode({ node, depth, actions }) {
                     )}
 
                     <ListItemIcon sx={{ minWidth: 32 }}>
-                        <Icon
-                            fontSize="small"
-                            sx={{ color: node.nodeType === "location" ? "#FFCA28" : undefined }}
-                        />
+
+                        {node.nodeType === "component" ? (
+
+                            <PhotoThumbnail
+                                src={getComponentPhotoUrl(node.raw.id, node.raw.updated_at)}
+                                alt={node.name}
+                                size={24}
+                            />
+
+                        ) : node.nodeType === "genericItem" ? (
+
+                            <PhotoThumbnail
+                                src={getGenericItemPhotoUrl(node.raw.id, node.raw.updated_at)}
+                                alt={node.name}
+                                size={24}
+                            />
+
+                        ) : (
+
+                            <Icon
+                                fontSize="small"
+                                sx={{ color: node.nodeType === "location" ? "#FFCA28" : undefined }}
+                            />
+
+                        )}
+
                     </ListItemIcon>
 
                     <ListItemText

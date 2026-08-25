@@ -4,10 +4,12 @@ import {
     getGenericItems,
     createGenericItem,
     updateGenericItem,
-    deleteGenericItem
+    deleteGenericItem,
+    getGenericItemPhotoUrl
 } from "../services/genericItemService";
 
 import DataTable from "../components/common/DataTable";
+import PhotoThumbnail from "../components/common/PhotoThumbnail";
 import CrudToolbar from "../components/common/CrudToolbar";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import GenericItemDialog from "../components/dialogs/GenericItemDialog";
@@ -137,6 +139,21 @@ function GenericItemsPage() {
     }
 
     const columns = [
+
+        {
+            field: "photo",
+            headerName: "",
+            width: 52,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => (
+                <PhotoThumbnail
+                    src={getGenericItemPhotoUrl(params.row.id, params.row.updated_at)}
+                    alt={params.row.name}
+                    size={36}
+                />
+            )
+        },
 
         {
             field: "name",

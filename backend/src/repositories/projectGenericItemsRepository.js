@@ -10,6 +10,7 @@ const SELECT_FIELDS = `
     gi.part_number,
     gi.unit,
     gi.quantity AS available_quantity,
+    gi.updated_at,
 
     pgi.quantity,
     pgi.notes

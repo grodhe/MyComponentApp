@@ -10,6 +10,7 @@ const SELECT_FIELDS = `
     c.part_name,
     c.component_value,
     c.quantity AS available_quantity,
+    c.updated_at,
 
     pc.quantity,
     pc.reference_designators,

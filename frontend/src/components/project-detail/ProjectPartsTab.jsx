@@ -24,8 +24,11 @@ import {
 } from "../../services/projectGenericItemService";
 
 import { createShoppingListItem } from "../../services/shoppingListService";
+import { getComponentPhotoUrl } from "../../services/componentService";
+import { getGenericItemPhotoUrl } from "../../services/genericItemService";
 
 import DataTable from "../common/DataTable";
+import PhotoThumbnail from "../common/PhotoThumbnail";
 import ConfirmDialog from "../common/ConfirmDialog";
 import PartDialog from "../dialogs/PartDialog";
 import ShoppingListItemDialog from "../dialogs/ShoppingListItemDialog";
@@ -256,6 +259,23 @@ function ProjectPartsTab({ projectId }) {
     const shortageCount = rows.filter((row) => !hasEnough(row)).length;
 
     const columns = [
+
+        {
+            field: "photo",
+            headerName: "",
+            width: 52,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => (
+                <PhotoThumbnail
+                    src={params.row._partType === "component"
+                        ? getComponentPhotoUrl(params.row.component_id, params.row.updated_at)
+                        : getGenericItemPhotoUrl(params.row.generic_item_id, params.row.updated_at)}
+                    alt={params.row.displayName}
+                    size={36}
+                />
+            )
+        },
 
         {
             field: "displayName",
