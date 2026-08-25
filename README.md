@@ -145,4 +145,4 @@ The frontend dev server expects the backend reachable at whatever `VITE_API_URL`
 
 ## License
 
-Not yet specified — add a `LICENSE` file with whichever license you'd like this project distributed under.
+[MIT](https://github.com/orgs/community/discussions/LICENSE)
