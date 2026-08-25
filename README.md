@@ -145,4 +145,4 @@ The frontend dev server expects the backend reachable at whatever `VITE_API_URL`
 
 ## License
 
-[MIT](https://github.com/orgs/community/discussions/LICENSE)
+[MIT] https://mit-license.org/
