@@ -9,7 +9,7 @@ const fs = require("fs");
 const config = require("./config/app");
 
 fs.mkdirSync(config.uploads.componentsDir, { recursive: true });
-
+fs.mkdirSync(config.uploads.genericItemsDir, { recursive: true });
 const app = express();
 
 // `origin: true` reflects whatever origin made the request instead of a

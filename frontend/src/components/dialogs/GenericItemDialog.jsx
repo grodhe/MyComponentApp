@@ -1,15 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { getCategories } from "../../services/categoryService";
 import { getLocations } from "../../services/locationService";
 import { getSuppliers } from "../../services/supplierService";
 import { getLocationPath } from "../../utils/locationTree";
+import {
+    getGenericItemPhotoUrl,
+    uploadGenericItemPhoto,
+    deleteGenericItemPhoto
+} from "../../services/genericItemService";
 
 import {
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
+
+    Box,
+    Stack,
 
     Grid,
 
@@ -24,6 +32,164 @@ import {
     Button
 
 } from "@mui/material";
+
+import AddAPhotoIcon from "@mui/icons-material/AddAPhoto";
+import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
+
+// Shows the item's photo if one's been uploaded, a placeholder icon if
+// not, and Upload/Change/Remove controls beside it. Only rendered in edit
+// mode, since an item needs to already exist (have an id) before a photo
+// can be attached to it.
+//
+// Unlike ComponentDetailPage, this dialog doesn't reload the item from
+// the server after a photo change, so a local "version" counter is used
+// to bust the browser's image cache instead of the item's real
+// updated_at timestamp -- it just needs to change, not be meaningful.
+function GenericItemPhoto({ itemId }) {
+
+    const [photoOk, setPhotoOk] = useState(true);
+    const [version, setVersion] = useState(() => Date.now());
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
+
+    // Re-arm optimism whenever the dialog opens for this item, so a
+    // photo deleted elsewhere (another tab, another session) doesn't
+    // keep showing here as if it still existed.
+    useEffect(() => {
+
+        setPhotoOk(true);
+        setVersion(Date.now());
+
+    }, [itemId]);
+
+    async function handleFileChange(event) {
+
+        const file = event.target.files?.[0];
+
+        // Allows re-selecting the exact same filename later (e.g. after
+        // removing a photo and wanting to re-upload it) -- browsers don't
+        // fire onChange again for an unchanged file list otherwise.
+        event.target.value = "";
+
+        if (!file)
+            return;
+
+        setUploading(true);
+
+        try {
+
+            await uploadGenericItemPhoto(itemId, file);
+            setPhotoOk(true);
+            setVersion(Date.now());
+
+        } catch (err) {
+
+            console.error("Failed to upload photo:", err);
+            alert(`Failed to upload photo: ${err.message}`);
+
+        } finally {
+
+            setUploading(false);
+
+        }
+
+    }
+
+    async function handleRemove() {
+
+        try {
+
+            await deleteGenericItemPhoto(itemId);
+            setPhotoOk(false);
+
+        } catch (err) {
+
+            console.error("Failed to remove photo:", err);
+            alert(`Failed to remove photo: ${err.message}`);
+
+        }
+
+    }
+
+    const photoUrl = getGenericItemPhotoUrl(itemId, version);
+
+    return (
+
+        <Stack direction="row" spacing={2} alignItems="center">
+
+            <Box
+                sx={{
+                    width: 100,
+                    height: 90,
+                    borderRadius: 1,
+                    overflow: "hidden",
+                    bgcolor: "grey.100",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "1px solid",
+                    borderColor: "divider",
+                    flexShrink: 0
+                }}
+            >
+
+                {photoOk ? (
+
+                    <Box
+                        component="img"
+                        src={photoUrl}
+                        alt=""
+                        onError={() => setPhotoOk(false)}
+                        sx={{ width: "100%", height: "100%", objectFit: "contain" }}
+                    />
+
+                ) : (
+
+                    <ImageNotSupportedIcon color="disabled" />
+
+                )}
+
+            </Box>
+
+            <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                ref={fileInputRef}
+                onChange={handleFileChange}
+            />
+
+            <Stack direction="row" spacing={1}>
+
+                <Button
+                    size="small"
+                    startIcon={<AddAPhotoIcon fontSize="small" />}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                >
+                    {photoOk ? "Change Photo" : "Upload Photo"}
+                </Button>
+
+                {photoOk && (
+
+                    <Button
+                        size="small"
+                        color="error"
+                        onClick={handleRemove}
+                        disabled={uploading}
+                    >
+                        Remove
+                    </Button>
+
+                )}
+
+            </Stack>
+
+        </Stack>
+
+    );
+
+}
 
 const emptyItem = {
 
@@ -188,6 +354,14 @@ function GenericItemDialog({
                         />
 
                     </Grid>
+
+                    {mode === "edit" && data.id && (
+
+                        <Grid size={12}>
+                            <GenericItemPhoto itemId={data.id} />
+                        </Grid>
+
+                    )}
 
                     <Grid size={12}>
                         <Divider sx={{ mt: 2, mb: 1 }}>
