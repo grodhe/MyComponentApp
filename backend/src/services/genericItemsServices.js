@@ -23,6 +23,7 @@ function normalize(data = {}) {
         supplier_id: toIntOrNull(data.supplier_id),
         part_number: data.part_number ?? "",
         unit: (data.unit ?? "").trim() || "pcs",
+        barcode: data.barcode ?? "",
         quantity: toIntOrNull(data.quantity) ?? 0,
         minimum_quantity: toIntOrNull(data.minimum_quantity) ?? 0,
         reference_url: data.reference_url ?? "",

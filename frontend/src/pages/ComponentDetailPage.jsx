@@ -508,6 +508,11 @@ function ComponentDetailPage() {
                         />
 
                         <DetailField
+                            label="Supplier"
+                            value={component.supplier}
+                        />
+
+                        <DetailField
                             label="Manufacturer Part Number"
                             value={component.manufacturer_part_number}
                         />
@@ -535,6 +540,11 @@ function ComponentDetailPage() {
                         <DetailField
                             label="Location"
                             value={component.location}
+                        />
+
+                        <DetailField
+                            label="Barcode"
+                            value={component.barcode}
                         />
 
                         <Grid size={12}>

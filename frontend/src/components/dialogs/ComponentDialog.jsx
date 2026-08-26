@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getManufacturers } from "../../services/manufacturerService";
 import { getCategories } from "../../services/categoryService";
 import { getLocations } from "../../services/locationService";
+import { getSuppliers } from "../../services/supplierService";
 import { getLocationPath } from "../../utils/locationTree";
 
 import {
@@ -34,6 +35,7 @@ import {
 		manufacturer_id: "",
 		category_id: "",
 		location_id: "",
+		supplier_id: "",
 
 		manufacturer_part_number: "",
 
@@ -45,6 +47,7 @@ import {
 		minimum_quantity: 0,
 
 		datasheet_url: "",
+		barcode: "",
 		notes: ""
 
 	};
@@ -61,6 +64,10 @@ import {
 		// location's row in the Locations tree (e.g. its "+" menu).
 		defaultLocationId = null,
 
+		// Prefills Barcode when adding a component from the barcode-scan
+		// dialog after a scan didn't match anything existing.
+		defaultBarcode = null,
+
 		onClose,
 
 		onSave
@@ -71,6 +78,7 @@ import {
     const [manufacturers, setManufacturers] = useState([]);
     const [categories, setCategories] = useState([]);
     const [locations, setLocations] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
 
 
 	useEffect(() => {
@@ -87,7 +95,9 @@ import {
 
 					categories,
 
-					locations
+					locations,
+
+					suppliers
 
 				] = await Promise.all([
 
@@ -95,13 +105,16 @@ import {
 
 					getCategories(),
 
-					getLocations()
+					getLocations(),
+
+					getSuppliers()
 
 				]);
 
 				setManufacturers(manufacturers);
 				setCategories(categories);
 				setLocations(locations);
+				setSuppliers(suppliers);
 
 			} catch (err) {
 
@@ -119,14 +132,15 @@ import {
 
 			setData({
 				...emptyComponent,
-				location_id: defaultLocationId ?? ""
+				location_id: defaultLocationId ?? "",
+				barcode: defaultBarcode ?? ""
 			});
 
 		}
 
 		loadLookups();
 
-	}, [open, mode, component, defaultLocationId]);
+	}, [open, mode, component, defaultLocationId, defaultBarcode]);
 
 
 	function handleChange(event) {
@@ -338,6 +352,40 @@ import {
               </FormControl>
             </Grid>
 
+        <Grid size={{ xs: 12, md: 6 }}>
+
+            <FormControl fullWidth>
+
+                <InputLabel>Supplier</InputLabel>
+
+                <Select
+                    label="Supplier"
+                    name="supplier_id"
+                    value={data.supplier_id}
+                    onChange={handleChange}
+                >
+
+                    <MenuItem value="">
+                        <em>None</em>
+                    </MenuItem>
+
+                    {suppliers.map((supplier) => (
+
+                        <MenuItem
+                            key={supplier.id}
+                            value={supplier.id}
+                        >
+                            {supplier.name}
+                        </MenuItem>
+
+                    ))}
+
+                </Select>
+
+            </FormControl>
+
+        </Grid>
+
             <Grid size={{ xs: 12, md: 6 }}>
 
                 <TextField
@@ -439,6 +487,19 @@ import {
                     label="Datasheet URL"
                     name="datasheet_url"
                     value={data.datasheet_url}
+                    onChange={handleChange}
+                />
+
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+                    fullWidth
+                    label="Barcode"
+                    name="barcode"
+                    placeholder="Scan or type a barcode"
+                    value={data.barcode}
                     onChange={handleChange}
                 />
 

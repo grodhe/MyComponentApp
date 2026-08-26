@@ -7,6 +7,7 @@ const requireAuth = require("./middleware/requireAuth");
 const authRoutes = require("./routes/authRoutes");
 const fs = require("fs");
 const config = require("./config/app");
+const inventoryLookupRoutes = require("./routes/inventoryLookupRoutes");
 
 fs.mkdirSync(config.uploads.componentsDir, { recursive: true });
 fs.mkdirSync(config.uploads.genericItemsDir, { recursive: true });
@@ -65,7 +66,7 @@ const inventoryTransactionsRoutes = require("./routes/inventoryTransactionsRoute
 const shoppingListRoutes = require("./routes/shoppingListRoutes");
 
 
-
+app.use("/api/inventory-lookup", inventoryLookupRoutes);
 app.use("/api/components", componentRoutes);
 
 app.use("/api/manufacturers", manufacturersRoutes);

@@ -28,10 +28,12 @@ function normalize(data = {}) {
         quantity: toIntOrNull(data.quantity) ?? 0,
         minimum_quantity: toIntOrNull(data.minimum_quantity) ?? 0,
         datasheet_url: data.datasheet_url ?? "",
+        barcode: data.barcode ?? "",
         notes: data.notes ?? "",
         manufacturer_id: toIntOrNull(data.manufacturer_id),
         category_id: toIntOrNull(data.category_id),
-        location_id: toIntOrNull(data.location_id)
+        location_id: toIntOrNull(data.location_id),
+        supplier_id: toIntOrNull(data.supplier_id)
     };
 
 }

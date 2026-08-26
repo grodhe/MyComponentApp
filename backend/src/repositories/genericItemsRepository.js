@@ -19,6 +19,8 @@ const SELECT_FIELDS = `
 
     gi.unit,
 
+    gi.barcode,
+
     gi.quantity,
     gi.minimum_quantity,
 
@@ -86,6 +88,7 @@ async function create(data) {
             supplier_id,
             part_number,
             unit,
+            barcode,
             quantity,
             minimum_quantity,
             reference_url,
@@ -93,7 +96,7 @@ async function create(data) {
             created_at,
             updated_at
         ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW()
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW()
         )
         RETURNING id;
     `;
@@ -106,6 +109,7 @@ async function create(data) {
         data.supplier_id,
         data.part_number,
         data.unit,
+        data.barcode,
         data.quantity,
         data.minimum_quantity,
         data.reference_url,
@@ -130,12 +134,13 @@ async function update(id, data) {
             supplier_id = $5,
             part_number = $6,
             unit = $7,
-            quantity = $8,
-            minimum_quantity = $9,
-            reference_url = $10,
-            notes = $11,
+            barcode = $8,
+            quantity = $9,
+            minimum_quantity = $10,
+            reference_url = $11,
+            notes = $12,
             updated_at = NOW()
-        WHERE id = $12
+        WHERE id = $13
         RETURNING id;
     `;
 
@@ -147,6 +152,7 @@ async function update(id, data) {
         data.supplier_id,
         data.part_number,
         data.unit,
+        data.barcode,
         data.quantity,
         data.minimum_quantity,
         data.reference_url,
@@ -187,11 +193,29 @@ async function touchUpdatedAt(id) {
 
 }
 
+async function findByBarcode(barcode) {
+
+    const sql = `
+        ${locationPathCte()}
+        SELECT
+            ${SELECT_FIELDS}
+        ${JOINS}
+        WHERE gi.barcode = $1
+        LIMIT 1;
+    `;
+
+    const result = await pool.query(sql, [barcode]);
+
+    return result.rows[0];
+
+}
+
 module.exports = {
     getAll,
     getById,
     create,
     update,
     remove,
-    touchUpdatedAt
+    touchUpdatedAt,
+    findByBarcode
 };

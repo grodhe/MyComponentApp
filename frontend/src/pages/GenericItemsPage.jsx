@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import {
     getGenericItems,
@@ -16,12 +17,15 @@ import GenericItemDialog from "../components/dialogs/GenericItemDialog";
 
 function GenericItemsPage() {
 
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const [items, setItems] = useState([]);
     const [filter, setFilter] = useState("");
     const [selectedItem, setSelectedItem] = useState(null);
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogMode, setDialogMode] = useState("add");
+    const [prefillBarcode, setPrefillBarcode] = useState(null);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -46,10 +50,56 @@ function GenericItemsPage() {
 
     }, []);
 
+    // Arriving here from the barcode-scan dialog. Two cases:
+    //  - ?open=<id> -- a scan matched an existing item, open it for
+    //    editing (there's no separate detail page for generic items, so
+    //    "open" means the edit dialog). Waits for items to be loaded so
+    //    there's a real row object to hand the dialog.
+    //  - ?addBarcode=X -- a scan didn't match anything, open the Add
+    //    dialog with that code already filled in.
+    useEffect(() => {
+
+        const openId = searchParams.get("open");
+        const addBarcode = searchParams.get("addBarcode");
+
+        if (openId && items.length > 0) {
+
+            const match = items.find((item) => String(item.id) === openId);
+
+            if (match) {
+
+                setDialogMode("edit");
+                setSelectedItem(match);
+                setDialogOpen(true);
+
+            }
+
+            setSearchParams((params) => {
+                params.delete("open");
+                return params;
+            }, { replace: true });
+
+        } else if (addBarcode) {
+
+            setDialogMode("add");
+            setSelectedItem(null);
+            setPrefillBarcode(addBarcode);
+            setDialogOpen(true);
+
+            setSearchParams((params) => {
+                params.delete("addBarcode");
+                return params;
+            }, { replace: true });
+
+        }
+
+    }, [items, searchParams, setSearchParams]);
+
     function handleAdd() {
 
         setDialogMode("add");
         setSelectedItem(null);
+        setPrefillBarcode(null);
         setDialogOpen(true);
 
     }
@@ -262,6 +312,8 @@ function GenericItemsPage() {
                 mode={dialogMode}
 
                 item={dialogMode === "edit" ? selectedItem : null}
+
+                defaultBarcode={prefillBarcode}
 
                 onClose={handleClose}
 

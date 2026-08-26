@@ -207,6 +207,7 @@ const emptyItem = {
     minimum_quantity: 0,
 
     reference_url: "",
+    barcode: "",
     notes: ""
 
 };
@@ -222,6 +223,10 @@ function GenericItemDialog({
     // Prefills Location when adding an item from inside a location's row
     // in the Locations tree (e.g. its "+" menu).
     defaultLocationId = null,
+
+    // Prefills Barcode when adding an item from the barcode-scan dialog
+    // after a scan didn't match anything existing.
+    defaultBarcode = null,
 
     onClose,
 
@@ -277,14 +282,15 @@ function GenericItemDialog({
 
             setData({
                 ...emptyItem,
-                location_id: defaultLocationId ?? ""
+                location_id: defaultLocationId ?? "",
+                barcode: defaultBarcode ?? ""
             });
 
         }
 
         loadLookups();
 
-    }, [open, mode, item, defaultLocationId]);
+    }, [open, mode, item, defaultLocationId, defaultBarcode]);
 
     function handleChange(event) {
 
@@ -542,6 +548,19 @@ function GenericItemDialog({
                             name="reference_url"
                             placeholder="Product page, datasheet, etc."
                             value={data.reference_url}
+                            onChange={handleChange}
+                        />
+
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 6 }}>
+
+                        <TextField
+                            fullWidth
+                            label="Barcode"
+                            name="barcode"
+                            placeholder="Scan or type a barcode"
+                            value={data.barcode}
                             onChange={handleChange}
                         />
 

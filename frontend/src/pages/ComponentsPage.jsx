@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { Button } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -23,6 +23,7 @@ import DeleteComponentDialog from "../components/dialogs/DeleteComponentDialog";
 function ComponentsPage() {
 
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [components, setComponents] = useState([]);
     const [filter, setFilter] = useState("");
@@ -30,6 +31,7 @@ function ComponentsPage() {
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogMode, setDialogMode] = useState("add");
+    const [prefillBarcode, setPrefillBarcode] = useState(null);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -54,10 +56,35 @@ function ComponentsPage() {
 
     }, []);
 
+    // Arriving here from the barcode-scan dialog after a scan didn't
+    // match anything existing -- ?addBarcode=X opens the Add dialog with
+    // that code already filled in, so scanning something new can go
+    // straight into "create a record for this" instead of needing it
+    // typed in twice.
+    useEffect(() => {
+
+        const addBarcode = searchParams.get("addBarcode");
+
+        if (!addBarcode)
+            return;
+
+        setDialogMode("add");
+        setSelectedComponent(null);
+        setPrefillBarcode(addBarcode);
+        setDialogOpen(true);
+
+        setSearchParams((params) => {
+            params.delete("addBarcode");
+            return params;
+        }, { replace: true });
+
+    }, [searchParams, setSearchParams]);
+
     function handleAdd() {
 
         setDialogMode("add");
         setSelectedComponent(null);
+        setPrefillBarcode(null);
         setDialogOpen(true);
 
     }
@@ -186,6 +213,12 @@ function ComponentsPage() {
         },
 
         {
+            field: "supplier",
+            headerName: "Supplier",
+            width: 140
+        },
+
+        {
             field: "package",
             headerName: "Package",
             width: 120
@@ -300,6 +333,8 @@ function ComponentsPage() {
                 mode={dialogMode}
 
                 component={dialogMode === "edit" ? selectedComponent : null}
+
+                defaultBarcode={prefillBarcode}
 
                 onClose={handleClose}
 

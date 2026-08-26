@@ -18,6 +18,8 @@ const SELECT_FIELDS = `
 
     c.datasheet_url,
 
+    c.barcode,
+
     c.notes,
 
     c.created_at,
@@ -31,7 +33,10 @@ const SELECT_FIELDS = `
     cat.name AS category,
 
     c.location_id,
-    l.path AS location
+    l.path AS location,
+
+    c.supplier_id,
+    s.name AS supplier
 `;
 
 const JOINS = `
@@ -45,6 +50,9 @@ const JOINS = `
 
     LEFT JOIN location_path l
         ON l.id = c.location_id
+
+    LEFT JOIN ${schema}.suppliers s
+        ON s.id = c.supplier_id
 `;
 
 async function getAll() {
@@ -94,14 +102,16 @@ async function create(data) {
             quantity,
             minimum_quantity,
             datasheet_url,
+            barcode,
             notes,
             manufacturer_id,
             category_id,
             location_id,
+            supplier_id,
             created_at,
             updated_at
         ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW()
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW()
         )
         RETURNING id;
     `;
@@ -117,10 +127,12 @@ async function create(data) {
         data.quantity,
         data.minimum_quantity,
         data.datasheet_url,
+        data.barcode,
         data.notes,
         data.manufacturer_id,
         data.category_id,
-        data.location_id
+        data.location_id,
+        data.supplier_id
     ];
 
     const result = await pool.query(sql, values);
@@ -144,12 +156,14 @@ async function update(id, data) {
             quantity = $8,
             minimum_quantity = $9,
             datasheet_url = $10,
-            notes = $11,
-            manufacturer_id = $12,
-            category_id = $13,
-            location_id = $14,
+            barcode = $11,
+            notes = $12,
+            manufacturer_id = $13,
+            category_id = $14,
+            location_id = $15,
+            supplier_id = $16,
             updated_at = NOW()
-        WHERE id = $15
+        WHERE id = $17
         RETURNING id;
     `;
 
@@ -164,10 +178,12 @@ async function update(id, data) {
         data.quantity,
         data.minimum_quantity,
         data.datasheet_url,
+        data.barcode,
         data.notes,
         data.manufacturer_id,
         data.category_id,
         data.location_id,
+        data.supplier_id,
         id
     ];
 
@@ -204,11 +220,32 @@ async function touchUpdatedAt(id) {
 
 }
 
+// Used by the barcode-scan lookup -- takes the first match if there
+// happen to be two (barcode isn't a unique constraint, see
+// migrate_barcode.sql).
+async function findByBarcode(barcode) {
+
+    const sql = `
+        ${locationPathCte()}
+        SELECT
+            ${SELECT_FIELDS}
+        ${JOINS}
+        WHERE c.barcode = $1
+        LIMIT 1;
+    `;
+
+    const result = await pool.query(sql, [barcode]);
+
+    return result.rows[0];
+
+}
+
 module.exports = {
     getAll,
     getById,
     create,
     update,
     remove,
-    touchUpdatedAt
+    touchUpdatedAt,
+    findByBarcode
 };

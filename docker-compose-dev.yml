@@ -44,7 +44,7 @@ services:
     image: mycomponent-backend:dev
 
     environment:
-       - AUTH_ENABLED=false
+       - AUTH_ENABLED=true
 
     build:
       context: ./backend
