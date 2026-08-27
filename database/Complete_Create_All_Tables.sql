@@ -1,3 +1,6 @@
+-- Complete schema rebuilt
+SET search_path = compo;
+
 
 -- ===== schema/01_CreateSchema.sql =====
 CREATE SCHEMA IF NOT EXISTS compo;
@@ -251,124 +254,7 @@ ON compo.component_suppliers(supplier_id);
 CREATE INDEX IF NOT EXISTS idx_component_suppliers_preferred
 ON compo.component_suppliers(preferred_supplier);
 
--- ===== migrate_component_supplier.sql =====
-set search_path = "compo";
-
--- Components previously had no supplier link at all (only Manufacturer),
--- while Generic Items already had one -- this closes that gap so you can
--- note where you bought a component, same as you already can for generic
--- items. Idempotent -- safe to run against a database that's already
--- been migrated.
-
-ALTER TABLE components ADD COLUMN IF NOT EXISTS supplier_id INTEGER REFERENCES suppliers(id) ON DELETE SET NULL;
-
-CREATE INDEX IF NOT EXISTS idx_components_supplier ON components(supplier_id);
-
-
--- ===== migrate_barcode.sql =====
--- Adds a barcode column to components and generic_items, so a scanned
--- barcode (either printed on a part/packaging, or entered manually when
--- adding stock) can be looked up later. Idempotent -- safe to run against
--- a database that's already been migrated.
---
--- No uniqueness constraint on purpose: a blank/duplicate barcode
--- shouldn't ever be able to block saving a component or item, and the
--- lookup endpoint just takes the first match if there happen to be two.
-
-ALTER TABLE components ADD COLUMN IF NOT EXISTS barcode TEXT;
-ALTER TABLE generic_items ADD COLUMN IF NOT EXISTS barcode TEXT;
-
-CREATE INDEX IF NOT EXISTS idx_components_barcode ON components(barcode);
-CREATE INDEX IF NOT EXISTS idx_generic_items_barcode ON generic_items(barcode);
-
-
--- ===== migrate_location_hierarchy.sql =====
--- Adds hierarchical support to an EXISTING locations table
--- (e.g. Cabinet A -> Drawer A1/A2/A3).
---
--- Safe to run more than once -- every statement is guarded so re-running
--- this script is a no-op if it's already been applied.
---
--- Run this once against your real database:
---   psql -f migrate_location_hierarchy.sql
-
-ALTER TABLE locations
-    ADD COLUMN IF NOT EXISTS parent_id INTEGER;
-
--- Add the self-referencing foreign key separately, since
--- "ADD COLUMN ... REFERENCES" has no IF NOT EXISTS guard of its own.
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.table_constraints
-        WHERE constraint_name = 'fk_locations_parent'
-          AND table_name = 'locations'
-    ) THEN
-        ALTER TABLE locations
-            ADD CONSTRAINT fk_locations_parent
-            FOREIGN KEY (parent_id)
-            REFERENCES locations(id)
-            ON DELETE RESTRICT;
-    END IF;
-END $$;
-
-CREATE INDEX IF NOT EXISTS idx_locations_parent ON locations(parent_id);
-
-
--- ===== migrate_inventory_transactions.sql =====
--- Idempotent migration for an existing database: adds the
--- inventory_transactions table used by the Inventory Transactions feature.
--- Safe to run more than once.
-CREATE TABLE IF NOT EXISTS inventory_transactions (
-    id              SERIAL PRIMARY KEY,
-    component_id    INTEGER NOT NULL REFERENCES components(id) ON DELETE CASCADE,
-    quantity_delta  INTEGER NOT NULL,
-    reason          TEXT NOT NULL,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_inventory_transactions_component ON inventory_transactions(component_id);
-CREATE INDEX IF NOT EXISTS idx_inventory_transactions_created_at ON inventory_transactions(created_at);
-
-
--- ===== migrate_shopping_list.sql =====
-set search_path = "compo";
-
--- Shopping list: components (or free-text items not in inventory) that
--- need to be bought. Idempotent -- safe to run against a database that
--- already has this table.
-CREATE TABLE IF NOT EXISTS shopping_list_items (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-
-    component_id BIGINT,
-
-    -- Free-text label, used for items that aren't (yet) inventory
-    -- components, e.g. "M3x10 screws" or "9V battery clips". Optional
-    -- when component_id is set -- the component's own part number/name is
-    -- used for display in that case.
-    description TEXT,
-
-    quantity_needed INTEGER NOT NULL DEFAULT 1,
-
-    notes TEXT,
-
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-    CONSTRAINT fk_shopping_list_component
-        FOREIGN KEY (component_id)
-        REFERENCES components(id)
-        ON DELETE SET NULL,
-
-    CONSTRAINT chk_shopping_list_has_label
-        CHECK (component_id IS NOT NULL OR description IS NOT NULL)
-);
-
-CREATE INDEX IF NOT EXISTS idx_shopping_list_component ON shopping_list_items(component_id);
-
-
 -- ===== ProjectTables.sql =====
-set search_path = "compo";
-BEGIN;
 
 CREATE TABLE project_status
 (
@@ -434,7 +320,7 @@ CREATE TABLE project_components
 
     CONSTRAINT fk_pc_component
         FOREIGN KEY(component_id)
-        REFERENCES components(id)
+        REFERENCES compo.components(id)
         ON DELETE RESTRICT
 );
 
@@ -535,8 +421,8 @@ CREATE TABLE IF NOT EXISTS generic_items
     description         TEXT,
 
     category_id         INTEGER REFERENCES categories(id) ON DELETE SET NULL,
-    location_id         INTEGER REFERENCES locations(id) ON DELETE SET NULL,
-    supplier_id         INTEGER REFERENCES suppliers(id) ON DELETE SET NULL,
+    location_id         INTEGER REFERENCES compo.locations(id) ON DELETE SET NULL,
+    supplier_id         INTEGER REFERENCES compo.suppliers(id) ON DELETE SET NULL,
 
     part_number         TEXT,
 
@@ -552,9 +438,9 @@ CREATE TABLE IF NOT EXISTS generic_items
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_generic_items_category ON generic_items(category_id);
-CREATE INDEX IF NOT EXISTS idx_generic_items_location ON generic_items(location_id);
-CREATE INDEX IF NOT EXISTS idx_generic_items_supplier ON generic_items(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_generic_items_category ON compo.generic_items(category_id);
+CREATE INDEX IF NOT EXISTS idx_generic_items_location ON compo.generic_items(location_id);
+CREATE INDEX IF NOT EXISTS idx_generic_items_supplier ON compo.generic_items(supplier_id);
 
 -- Same shape as project_components, but for generic_items. Kept as a
 -- separate table (rather than making project_components polymorphic) so
@@ -585,4 +471,111 @@ CREATE TABLE IF NOT EXISTS project_generic_items
         UNIQUE(project_id, generic_item_id)
 );
 
-COMMIT;
+
+-- ===== migrate_component_supplier.sql =====
+
+-- Components previously had no supplier link at all (only Manufacturer),
+-- while Generic Items already had one -- this closes that gap so you can
+-- note where you bought a component, same as you already can for generic
+-- items. Idempotent -- safe to run against a database that's already
+-- been migrated.
+
+ALTER TABLE compo.components ADD COLUMN IF NOT EXISTS supplier_id INTEGER REFERENCES compo.suppliers(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_components_supplier ON compo.components(supplier_id);
+
+-- ===== migrate_barcode.sql =====
+-- Adds a barcode column to components and generic_items, so a scanned
+-- barcode (either printed on a part/packaging, or entered manually when
+-- adding stock) can be looked up later. Idempotent -- safe to run against
+-- a database that's already been migrated.
+--
+-- No uniqueness constraint on purpose: a blank/duplicate barcode
+-- shouldn't ever be able to block saving a component or item, and the
+-- lookup endpoint just takes the first match if there happen to be two.
+
+ALTER TABLE compo.components ADD COLUMN IF NOT EXISTS barcode TEXT;
+ALTER TABLE compo.generic_items ADD COLUMN IF NOT EXISTS barcode TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_components_barcode ON compo.components(barcode);
+CREATE INDEX IF NOT EXISTS idx_generic_items_barcode ON compo.generic_items(barcode);
+
+-- ===== migrate_location_hierarchy.sql =====
+-- Adds hierarchical support to an EXISTING locations table
+-- (e.g. Cabinet A -> Drawer A1/A2/A3).
+--
+-- Safe to run more than once -- every statement is guarded so re-running
+-- this script is a no-op if it's already been applied.
+--
+-- Run this once against your real database:
+--   psql -f migrate_location_hierarchy.sql
+
+ALTER TABLE compo.locations
+    ADD COLUMN IF NOT EXISTS parent_id INTEGER;
+
+-- Add the self-referencing foreign key separately, since
+-- "ADD COLUMN ... REFERENCES" has no IF NOT EXISTS guard of its own.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints
+        WHERE constraint_name = 'fk_locations_parent'
+          AND table_name = 'locations'
+    ) THEN
+        ALTER TABLE compo.locations
+            ADD CONSTRAINT fk_locations_parent
+            FOREIGN KEY (parent_id)
+            REFERENCES compo.locations(id)
+            ON DELETE RESTRICT;
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_locations_parent ON compo.locations(parent_id);
+
+-- ===== migrate_inventory_transactions.sql =====
+-- Idempotent migration for an existing database: adds the
+-- inventory_transactions table used by the Inventory Transactions feature.
+-- Safe to run more than once.
+CREATE TABLE IF NOT EXISTS compo.inventory_transactions (
+    id              SERIAL PRIMARY KEY,
+    component_id    INTEGER NOT NULL REFERENCES compo.components(id) ON DELETE CASCADE,
+    quantity_delta  INTEGER NOT NULL,
+    reason          TEXT NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_inventory_transactions_component ON compo.inventory_transactions(component_id);
+CREATE INDEX IF NOT EXISTS idx_inventory_transactions_created_at ON compo.inventory_transactions(created_at);
+
+-- ===== migrate_shopping_list.sql =====
+
+-- Shopping list: components (or free-text items not in inventory) that
+-- need to be bought. Idempotent -- safe to run against a database that
+-- already has this table.
+CREATE TABLE IF NOT EXISTS shopping_list_items (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    component_id BIGINT,
+
+    -- Free-text label, used for items that aren't (yet) inventory
+    -- components, e.g. "M3x10 screws" or "9V battery clips". Optional
+    -- when component_id is set -- the component's own part number/name is
+    -- used for display in that case.
+    description TEXT,
+
+    quantity_needed INTEGER NOT NULL DEFAULT 1,
+
+    notes TEXT,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT fk_shopping_list_component
+        FOREIGN KEY (component_id)
+        REFERENCES compo.components(id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT chk_shopping_list_has_label
+        CHECK (component_id IS NOT NULL OR description IS NOT NULL)
+);
+
+CREATE INDEX IF NOT EXISTS idx_shopping_list_component ON shopping_list_items(component_id);
