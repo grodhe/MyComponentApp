@@ -1,16 +1,18 @@
+const fs = require("fs");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
+const config = require("./config/app");
 const requireAuth = require("./middleware/requireAuth");
 const authRoutes = require("./routes/authRoutes");
-const fs = require("fs");
-const config = require("./config/app");
-const inventoryLookupRoutes = require("./routes/inventoryLookupRoutes");
 
+// Created up front so multer never fails a first-ever upload just because
+// the folder doesn't exist yet -- harmless if it's already there
+// (recursive + no error on existing dir).
 fs.mkdirSync(config.uploads.componentsDir, { recursive: true });
-fs.mkdirSync(config.uploads.genericItemsDir, { recursive: true });
+
 const app = express();
 
 // `origin: true` reflects whatever origin made the request instead of a
@@ -64,9 +66,10 @@ const projectGenericItemsRoutes = require("./routes/projectGenericItemsRoutes");
 const componentTransactionsRoutes = require("./routes/componentTransactionsRoutes");
 const inventoryTransactionsRoutes = require("./routes/inventoryTransactionsRoutes");
 const shoppingListRoutes = require("./routes/shoppingListRoutes");
+const componentPurchasesRoutes = require("./routes/componentPurchasesRoutes");
 
 
-app.use("/api/inventory-lookup", inventoryLookupRoutes);
+
 app.use("/api/components", componentRoutes);
 
 app.use("/api/manufacturers", manufacturersRoutes);
@@ -97,6 +100,7 @@ app.use("/api/projects/:projectId/generic-items", projectGenericItemsRoutes);
 app.use("/api/components/:componentId/transactions", componentTransactionsRoutes);
 app.use("/api/inventory-transactions", inventoryTransactionsRoutes);
 app.use("/api/shopping-list", shoppingListRoutes);
+app.use("/api/components/:componentId/purchases", componentPurchasesRoutes);
 
 
 const PORT = process.env.PORT || 3001;

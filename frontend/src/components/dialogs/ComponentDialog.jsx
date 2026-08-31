@@ -43,6 +43,9 @@ import {
 		footprint: "",
 		component_value: "",
 
+		supplier_part_number: "",
+		purchase_price: "",
+
 		quantity: 0,
 		minimum_quantity: 0,
 
@@ -429,6 +432,43 @@ import {
                     label="Manufacturer Part Number"
                     name="manufacturer_part_number"
                     value={data.manufacturer_part_number}
+                    onChange={handleChange}
+                />
+
+            </Grid>
+
+            <Grid size={12}>
+
+                <Divider sx={{ mt: 2, mb: 1 }}>
+
+                    Purchasing
+
+                </Divider>
+
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+                    fullWidth
+                    label="Supplier Part Number"
+                    name="supplier_part_number"
+                    placeholder="The supplier's own SKU/part number"
+                    value={data.supplier_part_number}
+                    onChange={handleChange}
+                />
+
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+
+                <TextField
+                    fullWidth
+                    type="number"
+                    label="Purchase Price"
+                    name="purchase_price"
+                    placeholder="Unit price"
+                    value={data.purchase_price}
                     onChange={handleChange}
                 />
 

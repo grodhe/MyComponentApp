@@ -25,6 +25,12 @@ import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import AddAPhotoIcon from "@mui/icons-material/AddAPhoto";
 import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 
 import {
     getComponent,
@@ -34,10 +40,18 @@ import {
     deleteComponentPhoto
 } from "../services/componentService";
 import { getComponentTransactions, createTransaction } from "../services/inventoryTransactionService";
+import {
+    getComponentPurchases,
+    createPurchase,
+    deletePurchase
+} from "../services/componentPurchaseService";
+import { getSuppliers } from "../services/supplierService";
 import { PUBLIC_APP_BASE_URL } from "../config";
 
 import ComponentDialog from "../components/dialogs/ComponentDialog";
 import StockAdjustDialog from "../components/dialogs/StockAdjustDialog";
+import PurchaseDialog from "../components/dialogs/PurchaseDialog";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 import LabelPrintArea from "../components/common/LabelPrintArea";
 
 // A single labeled field in the detail grid. Renders nothing if there's no
@@ -223,6 +237,18 @@ function ComponentPhoto({ component, onChanged }) {
 
 }
 
+// purchase_date is a plain SQL DATE (no time component), unlike the
+// transaction timestamps above -- formatTimestamp would tack on a
+// meaningless "00:00", so this just takes the date part.
+function formatDate(value) {
+
+    if (!value)
+        return "";
+
+    return String(value).slice(0, 10);
+
+}
+
 function formatTimestamp(value) {
 
     if (!value)
@@ -244,6 +270,8 @@ function ComponentDetailPage() {
 
     const [component, setComponent] = useState(null);
     const [transactions, setTransactions] = useState([]);
+    const [purchases, setPurchases] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
 
     const [editOpen, setEditOpen] = useState(false);
 
@@ -252,17 +280,24 @@ function ComponentDetailPage() {
     const [stockDialogMode, setStockDialogMode] = useState("use");
     const [stockDialogOpen, setStockDialogOpen] = useState(false);
 
+    const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
+    const [purchaseDeleteTarget, setPurchaseDeleteTarget] = useState(null);
+
     async function load() {
 
         try {
 
-            const [componentData, transactionsData] = await Promise.all([
+            const [componentData, transactionsData, purchasesData, suppliersData] = await Promise.all([
                 getComponent(id),
-                getComponentTransactions(id)
+                getComponentTransactions(id),
+                getComponentPurchases(id),
+                getSuppliers()
             ]);
 
             setComponent(componentData);
             setTransactions(transactionsData);
+            setPurchases(purchasesData);
+            setSuppliers(suppliersData);
 
         } catch (err) {
 
@@ -319,6 +354,88 @@ function ComponentDetailPage() {
 
             console.error("Failed to record stock change:", err);
             alert(`Failed to record stock change: ${err.message}`);
+
+        }
+
+    }
+
+    // Quick +1/-1 -- bypasses the "reason required" dialog on purpose, but
+    // still goes through the same transactions endpoint as Use/Add Stock so
+    // it's logged (as "Quick adjustment") and shows up in Stock History.
+    // -1 is disabled at 0 quantity from the button itself, same guard as
+    // the full Use Stock button already has.
+    async function handleQuickAdjust(delta) {
+
+        if (!component)
+            return;
+
+        if (delta < 0 && (component.quantity ?? 0) <= 0)
+            return;
+
+        try {
+
+            const result = await createTransaction(component.id, {
+                quantity_delta: delta,
+                reason: "Quick adjustment"
+            });
+
+            setComponent(result.component);
+            setTransactions((current) => [result.transaction, ...current]);
+
+        } catch (err) {
+
+            console.error("Failed to record quick stock change:", err);
+            alert(`Failed to record stock change: ${err.message}`);
+
+        }
+
+    }
+
+    function handleOpenLogPurchase() {
+
+        setPurchaseDialogOpen(true);
+
+    }
+
+    // Pure record-keeping -- see componentPurchaseService.js. This never
+    // touches component.quantity, unlike handleConfirmStockAdjust above.
+    async function handleSavePurchase(data) {
+
+        if (!component)
+            return;
+
+        try {
+
+            const created = await createPurchase(component.id, data);
+
+            setPurchases((current) => [created, ...current]);
+            setPurchaseDialogOpen(false);
+
+        } catch (err) {
+
+            console.error("Failed to log purchase:", err);
+            alert(`Failed to log purchase: ${err.message}`);
+
+        }
+
+    }
+
+    async function handleConfirmDeletePurchase() {
+
+        if (!component || !purchaseDeleteTarget)
+            return;
+
+        try {
+
+            await deletePurchase(component.id, purchaseDeleteTarget.id);
+
+            setPurchases((current) => current.filter((p) => p.id !== purchaseDeleteTarget.id));
+            setPurchaseDeleteTarget(null);
+
+        } catch (err) {
+
+            console.error("Failed to delete purchase:", err);
+            alert(`Failed to delete purchase: ${err.message}`);
 
         }
 
@@ -471,6 +588,17 @@ function ComponentDetailPage() {
                             Use Stock
                         </Button>
 
+                        <Tooltip title="Quick -1 (no reason needed, still logged)">
+                            <span>
+                                <IconButton
+                                    onClick={() => handleQuickAdjust(-1)}
+                                    disabled={(component.quantity ?? 0) <= 0}
+                                >
+                                    <RemoveIcon />
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+
                         <Button
                             variant="outlined"
                             startIcon={<AddCircleOutlineIcon />}
@@ -479,12 +607,28 @@ function ComponentDetailPage() {
                             Add Stock
                         </Button>
 
+                        <Tooltip title="Quick +1 (no reason needed, still logged)">
+                            <IconButton
+                                onClick={() => handleQuickAdjust(1)}
+                            >
+                                <AddIcon />
+                            </IconButton>
+                        </Tooltip>
+
                         <Button
                             variant="outlined"
                             startIcon={<PrintIcon />}
                             onClick={handlePrint}
                         >
                             Print Label
+                        </Button>
+
+                        <Button
+                            variant="outlined"
+                            startIcon={<ShoppingCartIcon />}
+                            onClick={handleOpenLogPurchase}
+                        >
+                            Log Purchase
                         </Button>
 
                     </Stack>
@@ -510,6 +654,20 @@ function ComponentDetailPage() {
                         <DetailField
                             label="Supplier"
                             value={component.supplier}
+                        />
+
+                        <DetailField
+                            label="Supplier Part Number"
+                            value={component.supplier_part_number}
+                        />
+
+                        <DetailField
+                            label="Purchase Price"
+                            value={
+                                component.purchase_price === null || component.purchase_price === undefined
+                                    ? null
+                                    : Number(component.purchase_price).toFixed(2)
+                            }
                         />
 
                         <DetailField
@@ -623,6 +781,90 @@ function ComponentDetailPage() {
 
                     )}
 
+                    <Divider sx={{ mt: 4, mb: 2 }} />
+
+                    <Typography variant="h6" sx={{ mb: 1 }}>
+                        Purchase History
+                    </Typography>
+
+                    {purchases.length === 0 ? (
+
+                        <Typography color="text.secondary">
+                            No purchases logged yet -- use "Log Purchase" above.
+                        </Typography>
+
+                    ) : (
+
+                        <Table size="small">
+
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Date</TableCell>
+                                    <TableCell align="right">Qty</TableCell>
+                                    <TableCell align="right">Unit Price</TableCell>
+                                    <TableCell>Supplier</TableCell>
+                                    <TableCell>Supplier Part #</TableCell>
+                                    <TableCell>Order Ref</TableCell>
+                                    <TableCell>Notes</TableCell>
+                                    <TableCell />
+                                </TableRow>
+                            </TableHead>
+
+                            <TableBody>
+
+                                {purchases.map((p) => (
+
+                                    <TableRow key={p.id}>
+
+                                        <TableCell>
+                                            {formatDate(p.purchase_date) || formatTimestamp(p.created_at)}
+                                        </TableCell>
+
+                                        <TableCell align="right">
+                                            {p.quantity}
+                                        </TableCell>
+
+                                        <TableCell align="right">
+                                            {p.unit_price === null || p.unit_price === undefined
+                                                ? "—"
+                                                : Number(p.unit_price).toFixed(2)}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {p.supplier || "—"}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {p.supplier_part_number || "—"}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {p.order_reference || "—"}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {p.notes || "—"}
+                                        </TableCell>
+
+                                        <TableCell align="right">
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => setPurchaseDeleteTarget(p)}
+                                            >
+                                                <DeleteIcon fontSize="small" />
+                                            </IconButton>
+                                        </TableCell>
+
+                                    </TableRow>
+
+                                ))}
+
+                            </TableBody>
+
+                        </Table>
+
+                    )}
+
                 </>
 
             )}
@@ -640,6 +882,25 @@ function ComponentDetailPage() {
                 mode={stockDialogMode}
                 onClose={() => setStockDialogOpen(false)}
                 onConfirm={handleConfirmStockAdjust}
+            />
+
+            <PurchaseDialog
+                open={purchaseDialogOpen}
+                defaultSupplierId={component?.supplier_id ?? ""}
+                defaultSupplierPartNumber={component?.supplier_part_number ?? ""}
+                suppliers={suppliers}
+                onClose={() => setPurchaseDialogOpen(false)}
+                onSave={handleSavePurchase}
+            />
+
+            <ConfirmDialog
+                open={Boolean(purchaseDeleteTarget)}
+                title="Delete Purchase"
+                message="Are you sure you want to delete this purchase record? This cannot be undone."
+                confirmLabel="Delete"
+                confirmColor="error"
+                onConfirm={handleConfirmDeletePurchase}
+                onCancel={() => setPurchaseDeleteTarget(null)}
             />
 
             <LabelPrintArea

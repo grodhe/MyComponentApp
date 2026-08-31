@@ -36,7 +36,10 @@ const SELECT_FIELDS = `
     l.path AS location,
 
     c.supplier_id,
-    s.name AS supplier
+    s.name AS supplier,
+
+    c.supplier_part_number,
+    c.purchase_price
 `;
 
 const JOINS = `
@@ -108,10 +111,12 @@ async function create(data) {
             category_id,
             location_id,
             supplier_id,
+            supplier_part_number,
+            purchase_price,
             created_at,
             updated_at
         ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW()
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW(), NOW()
         )
         RETURNING id;
     `;
@@ -132,7 +137,9 @@ async function create(data) {
         data.manufacturer_id,
         data.category_id,
         data.location_id,
-        data.supplier_id
+        data.supplier_id,
+        data.supplier_part_number,
+        data.purchase_price
     ];
 
     const result = await pool.query(sql, values);
@@ -162,8 +169,10 @@ async function update(id, data) {
             category_id = $14,
             location_id = $15,
             supplier_id = $16,
+            supplier_part_number = $17,
+            purchase_price = $18,
             updated_at = NOW()
-        WHERE id = $17
+        WHERE id = $19
         RETURNING id;
     `;
 
@@ -184,6 +193,8 @@ async function update(id, data) {
         data.category_id,
         data.location_id,
         data.supplier_id,
+        data.supplier_part_number,
+        data.purchase_price,
         id
     ];
 

@@ -17,6 +17,10 @@ function normalize(data = {}) {
 
     };
 
+    // Same coercion as toIntOrNull, just not rounded -- purchase_price is
+    // a plain decimal (12.5, not just whole numbers).
+    const toDecimalOrNull = toIntOrNull;
+
     return {
         part_number: data.part_number ?? "",
         part_name: data.part_name ?? "",
@@ -33,7 +37,9 @@ function normalize(data = {}) {
         manufacturer_id: toIntOrNull(data.manufacturer_id),
         category_id: toIntOrNull(data.category_id),
         location_id: toIntOrNull(data.location_id),
-        supplier_id: toIntOrNull(data.supplier_id)
+        supplier_id: toIntOrNull(data.supplier_id),
+        supplier_part_number: data.supplier_part_number ?? "",
+        purchase_price: toDecimalOrNull(data.purchase_price)
     };
 
 }

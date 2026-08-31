@@ -35,6 +35,10 @@ import {
 
 import AddAPhotoIcon from "@mui/icons-material/AddAPhoto";
 import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
 
 // Shows the item's photo if one's been uploaded, a placeholder icon if
 // not, and Upload/Change/Remove controls beside it. Only rendered in edit
@@ -306,6 +310,24 @@ function GenericItemDialog({
 
     }
 
+    // Quick +1/-1 on the Quantity field itself -- unlike Components, generic
+    // items have no stock-transaction log to write to (this quantity field
+    // has always just been a plain, unlogged value), so this is nothing
+    // more than a shortcut for typing a number: it only touches local form
+    // state, same as handleChange above, and still goes through the normal
+    // Save button like any other edit.
+    function adjustQuantity(delta) {
+
+        const current = Number(data.quantity) || 0;
+        const next = Math.max(0, current + delta);
+
+        setData({
+            ...data,
+            quantity: next
+        });
+
+    }
+
     function handleSave() {
 
         onSave(data);
@@ -517,6 +539,31 @@ function GenericItemDialog({
                             name="quantity"
                             value={data.quantity}
                             onChange={handleChange}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <IconButton
+                                            size="small"
+                                            edge="start"
+                                            onClick={() => adjustQuantity(-1)}
+                                            disabled={(Number(data.quantity) || 0) <= 0}
+                                        >
+                                            <RemoveIcon fontSize="small" />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            size="small"
+                                            edge="end"
+                                            onClick={() => adjustQuantity(1)}
+                                        >
+                                            <AddIcon fontSize="small" />
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
                         />
 
                     </Grid>
