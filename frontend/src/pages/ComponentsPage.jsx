@@ -1,8 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { Button } from "@mui/material";
+import {
+    Box,
+    Button,
+    Chip,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    Stack
+} from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import ClearIcon from "@mui/icons-material/Clear";
 
 import {
     getComponents,
@@ -28,6 +38,15 @@ function ComponentsPage() {
     const [components, setComponents] = useState([]);
     const [filter, setFilter] = useState("");
     const [selectedComponent, setSelectedComponent] = useState(null);
+
+    // Dedicated filters, on top of the free-text search above. These are
+    // AND'd together with each other and with the text search -- e.g.
+    // picking a category and typing a search term narrows to components
+    // matching both. "" always means "no filter applied" for that field.
+    const [categoryFilter, setCategoryFilter] = useState("");
+    const [manufacturerFilter, setManufacturerFilter] = useState("");
+    const [locationFilter, setLocationFilter] = useState("");
+    const [stockFilter, setStockFilter] = useState("");
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogMode, setDialogMode] = useState("add");
@@ -255,11 +274,15 @@ function ComponentsPage() {
     // this covers every field someone might actually remember/search by --
     // not just part number/name. Plain substring matching (not "starts
     // with") so a partial fragment like "BME" finds both BME280 and BME680.
+    //
+    // The dedicated filters below narrow further by exact category/
+    // manufacturer, by location (and everything under it), and by stock
+    // status -- all AND'd together with this text search and each other.
     const filteredComponents = components.filter(component => {
 
         const text = filter.toLowerCase();
 
-        return (
+        const matchesText = (
 
             (component.part_number ?? "").toLowerCase().includes(text) ||
             (component.part_name ?? "").toLowerCase().includes(text) ||
@@ -275,7 +298,78 @@ function ComponentsPage() {
 
         );
 
+        if (!matchesText)
+            return false;
+
+        if (categoryFilter && component.category !== categoryFilter)
+            return false;
+
+        if (manufacturerFilter && component.manufacturer !== manufacturerFilter)
+            return false;
+
+        // Prefix match on path segments, not exact -- picking "Cabinet 1"
+        // also matches "Cabinet 1 / Drawer A1", so filtering by a parent
+        // location shows everything nested under it, not just components
+        // stored directly on that one node. Matched on " / " boundaries
+        // (not a raw substring startsWith) so "Cabinet 1" doesn't also
+        // match "Cabinet 10 / ...".
+        if (locationFilter) {
+
+            const componentLocation = component.location ?? "";
+
+            const matchesLocation = (
+                componentLocation === locationFilter
+                || componentLocation.startsWith(`${locationFilter} / `)
+            );
+
+            if (!matchesLocation)
+                return false;
+
+        }
+
+        const quantity = component.quantity ?? 0;
+        const minimumQuantity = component.minimum_quantity ?? 0;
+
+        // Same mutually-exclusive definition as the Dashboard's Low Stock /
+        // Out of Stock lists: a 0-quantity item is "out of stock" only, not
+        // also counted as "low stock".
+        if (stockFilter === "out" && quantity !== 0)
+            return false;
+
+        if (stockFilter === "low" && !(quantity > 0 && minimumQuantity > 0 && quantity <= minimumQuantity))
+            return false;
+
+        return true;
+
     });
+
+    const categoryOptions = useMemo(
+        () => [...new Set(components.map(c => c.category).filter(Boolean))].sort(),
+        [components]
+    );
+
+    const manufacturerOptions = useMemo(
+        () => [...new Set(components.map(c => c.manufacturer).filter(Boolean))].sort(),
+        [components]
+    );
+
+    const locationOptions = useMemo(
+        () => [...new Set(components.map(c => c.location).filter(Boolean))].sort(),
+        [components]
+    );
+
+    const hasActiveFilters = Boolean(
+        categoryFilter || manufacturerFilter || locationFilter || stockFilter
+    );
+
+    function handleClearFilters() {
+
+        setCategoryFilter("");
+        setManufacturerFilter("");
+        setLocationFilter("");
+        setStockFilter("");
+
+    }
 
     return (
 
@@ -313,6 +407,93 @@ function ComponentsPage() {
                 }
 
             />
+
+            <Stack
+                direction="row"
+                spacing={2}
+                flexWrap="wrap"
+                useFlexGap
+                alignItems="center"
+                sx={{ mb: 2 }}
+            >
+
+                <FormControl size="small" sx={{ minWidth: 160 }}>
+                    <InputLabel id="category-filter-label">Category</InputLabel>
+                    <Select
+                        labelId="category-filter-label"
+                        label="Category"
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                    >
+                        <MenuItem value="">All Categories</MenuItem>
+                        {categoryOptions.map((option) => (
+                            <MenuItem key={option} value={option}>{option}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
+                <FormControl size="small" sx={{ minWidth: 160 }}>
+                    <InputLabel id="manufacturer-filter-label">Manufacturer</InputLabel>
+                    <Select
+                        labelId="manufacturer-filter-label"
+                        label="Manufacturer"
+                        value={manufacturerFilter}
+                        onChange={(e) => setManufacturerFilter(e.target.value)}
+                    >
+                        <MenuItem value="">All Manufacturers</MenuItem>
+                        {manufacturerOptions.map((option) => (
+                            <MenuItem key={option} value={option}>{option}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
+                <FormControl size="small" sx={{ minWidth: 200 }}>
+                    <InputLabel id="location-filter-label">Location</InputLabel>
+                    <Select
+                        labelId="location-filter-label"
+                        label="Location"
+                        value={locationFilter}
+                        onChange={(e) => setLocationFilter(e.target.value)}
+                    >
+                        <MenuItem value="">All Locations</MenuItem>
+                        {locationOptions.map((option) => (
+                            <MenuItem key={option} value={option}>{option}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
+                <FormControl size="small" sx={{ minWidth: 160 }}>
+                    <InputLabel id="stock-filter-label">Stock</InputLabel>
+                    <Select
+                        labelId="stock-filter-label"
+                        label="Stock"
+                        value={stockFilter}
+                        onChange={(e) => setStockFilter(e.target.value)}
+                    >
+                        <MenuItem value="">All Stock Levels</MenuItem>
+                        <MenuItem value="low">Low Stock</MenuItem>
+                        <MenuItem value="out">Out of Stock</MenuItem>
+                    </Select>
+                </FormControl>
+
+                {hasActiveFilters && (
+
+                    <Chip
+                        label="Clear filters"
+                        icon={<ClearIcon />}
+                        onClick={handleClearFilters}
+                        variant="outlined"
+                    />
+
+                )}
+
+                <Box sx={{ flexGrow: 1 }} />
+
+                <Box sx={{ color: "text.secondary", fontSize: 14 }}>
+                    {filteredComponents.length} of {components.length} components
+                </Box>
+
+            </Stack>
 
             <DataTable
 

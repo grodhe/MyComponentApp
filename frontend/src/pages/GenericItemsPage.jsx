@@ -1,5 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+
+import {
+    Box,
+    Chip,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    Stack
+} from "@mui/material";
+import ClearIcon from "@mui/icons-material/Clear";
 
 import {
     getGenericItems,
@@ -22,6 +33,13 @@ function GenericItemsPage() {
     const [items, setItems] = useState([]);
     const [filter, setFilter] = useState("");
     const [selectedItem, setSelectedItem] = useState(null);
+
+    // Dedicated filters, same idea as ComponentsPage -- AND'd together with
+    // each other and with the text search above. No Manufacturer filter
+    // here since generic items don't have that field.
+    const [categoryFilter, setCategoryFilter] = useState("");
+    const [locationFilter, setLocationFilter] = useState("");
+    const [stockFilter, setStockFilter] = useState("");
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogMode, setDialogMode] = useState("add");
@@ -254,7 +272,7 @@ function GenericItemsPage() {
 
         const text = filter.toLowerCase();
 
-        return (
+        const matchesText = (
 
             (item.name ?? "").toLowerCase().includes(text) ||
             (item.description ?? "").toLowerCase().includes(text) ||
@@ -265,7 +283,61 @@ function GenericItemsPage() {
 
         );
 
+        if (!matchesText)
+            return false;
+
+        if (categoryFilter && item.category !== categoryFilter)
+            return false;
+
+        // Prefix match on path segments -- see ComponentsPage for the same
+        // pattern. Picking "Cabinet 1" also matches "Cabinet 1 / Drawer
+        // A1", but not "Cabinet 10 / ...".
+        if (locationFilter) {
+
+            const itemLocation = item.location ?? "";
+
+            const matchesLocation = (
+                itemLocation === locationFilter
+                || itemLocation.startsWith(`${locationFilter} / `)
+            );
+
+            if (!matchesLocation)
+                return false;
+
+        }
+
+        const quantity = item.quantity ?? 0;
+        const minimumQuantity = item.minimum_quantity ?? 0;
+
+        if (stockFilter === "out" && quantity !== 0)
+            return false;
+
+        if (stockFilter === "low" && !(quantity > 0 && minimumQuantity > 0 && quantity <= minimumQuantity))
+            return false;
+
+        return true;
+
     });
+
+    const categoryOptions = useMemo(
+        () => [...new Set(items.map(i => i.category).filter(Boolean))].sort(),
+        [items]
+    );
+
+    const locationOptions = useMemo(
+        () => [...new Set(items.map(i => i.location).filter(Boolean))].sort(),
+        [items]
+    );
+
+    const hasActiveFilters = Boolean(categoryFilter || locationFilter || stockFilter);
+
+    function handleClearFilters() {
+
+        setCategoryFilter("");
+        setLocationFilter("");
+        setStockFilter("");
+
+    }
 
     return (
 
@@ -292,6 +364,78 @@ function GenericItemsPage() {
                 deleteDisabled={!selectedItem}
 
             />
+
+            <Stack
+                direction="row"
+                spacing={2}
+                flexWrap="wrap"
+                useFlexGap
+                alignItems="center"
+                sx={{ mb: 2 }}
+            >
+
+                <FormControl size="small" sx={{ minWidth: 160 }}>
+                    <InputLabel id="category-filter-label">Category</InputLabel>
+                    <Select
+                        labelId="category-filter-label"
+                        label="Category"
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                    >
+                        <MenuItem value="">All Categories</MenuItem>
+                        {categoryOptions.map((option) => (
+                            <MenuItem key={option} value={option}>{option}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
+                <FormControl size="small" sx={{ minWidth: 200 }}>
+                    <InputLabel id="location-filter-label">Location</InputLabel>
+                    <Select
+                        labelId="location-filter-label"
+                        label="Location"
+                        value={locationFilter}
+                        onChange={(e) => setLocationFilter(e.target.value)}
+                    >
+                        <MenuItem value="">All Locations</MenuItem>
+                        {locationOptions.map((option) => (
+                            <MenuItem key={option} value={option}>{option}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+
+                <FormControl size="small" sx={{ minWidth: 160 }}>
+                    <InputLabel id="stock-filter-label">Stock</InputLabel>
+                    <Select
+                        labelId="stock-filter-label"
+                        label="Stock"
+                        value={stockFilter}
+                        onChange={(e) => setStockFilter(e.target.value)}
+                    >
+                        <MenuItem value="">All Stock Levels</MenuItem>
+                        <MenuItem value="low">Low Stock</MenuItem>
+                        <MenuItem value="out">Out of Stock</MenuItem>
+                    </Select>
+                </FormControl>
+
+                {hasActiveFilters && (
+
+                    <Chip
+                        label="Clear filters"
+                        icon={<ClearIcon />}
+                        onClick={handleClearFilters}
+                        variant="outlined"
+                    />
+
+                )}
+
+                <Box sx={{ flexGrow: 1 }} />
+
+                <Box sx={{ color: "text.secondary", fontSize: 14 }}>
+                    {filteredItems.length} of {items.length} items
+                </Box>
+
+            </Stack>
 
             <DataTable
 
