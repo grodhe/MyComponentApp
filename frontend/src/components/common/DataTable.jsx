@@ -35,12 +35,12 @@ function DataTable({
 
                 loading={loading}
 
-                pageSizeOptions={[10, 25, 50, 100]}
+                pageSizeOptions={[15, 25, 50, 100]}
 
                 initialState={{
                     pagination: {
                         paginationModel: {
-                            pageSize: 10
+                            pageSize: 15
                         }
                     }
                 }}
