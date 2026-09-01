@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { Box, CircularProgress } from "@mui/material";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { SettingsProvider } from "./context/SettingsContext";
 
 import Layout from "./components/layout/Layout";
 import LoginPage from "./pages/LoginPage";
@@ -67,6 +68,8 @@ function AppContent() {
     }
 
     return (
+
+        <SettingsProvider>
 
         <Layout>
 
@@ -145,6 +148,8 @@ function AppContent() {
             </Routes>
 
         </Layout>
+
+        </SettingsProvider>
 
     );
 

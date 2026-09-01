@@ -74,6 +74,7 @@ const componentTransactionsRoutes = require("./routes/componentTransactionsRoute
 const inventoryTransactionsRoutes = require("./routes/inventoryTransactionsRoutes");
 const shoppingListRoutes = require("./routes/shoppingListRoutes");
 const componentPurchasesRoutes = require("./routes/componentPurchasesRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
 
 
 
@@ -108,6 +109,7 @@ app.use("/api/components/:componentId/transactions", componentTransactionsRoutes
 app.use("/api/inventory-transactions", inventoryTransactionsRoutes);
 app.use("/api/shopping-list", shoppingListRoutes);
 app.use("/api/components/:componentId/purchases", componentPurchasesRoutes);
+app.use("/api/settings", settingsRoutes);
 
 
 const PORT = process.env.PORT || 3001;

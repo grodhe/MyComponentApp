@@ -26,6 +26,7 @@ import {
 import { createShoppingListItem } from "../../services/shoppingListService";
 import { getComponentPhotoUrl } from "../../services/componentService";
 import { getGenericItemPhotoUrl } from "../../services/genericItemService";
+import { useSettings } from "../../context/SettingsContext";
 
 import DataTable from "../common/DataTable";
 import PhotoThumbnail from "../common/PhotoThumbnail";
@@ -68,6 +69,8 @@ function toRows(components, genericItems) {
 }
 
 function ProjectPartsTab({ projectId }) {
+
+    const { settings } = useSettings();
 
     const [components, setComponents] = useState([]);
     const [genericItems, setGenericItems] = useState([]);
@@ -258,6 +261,25 @@ function ProjectPartsTab({ projectId }) {
 
     const shortageCount = rows.filter((row) => !hasEnough(row)).length;
 
+    // Rows with no price set (purchase_price null/undefined) are just
+    // skipped here rather than treated as $0 -- an unpriced part
+    // shouldn't silently make the total look lower/more complete than it
+    // actually is.
+    const totalCost = rows.reduce((sum, row) => {
+
+        const price = row.purchase_price;
+
+        if (price === null || price === undefined || price === "")
+            return sum;
+
+        return sum + row.quantity * Number(price);
+
+    }, 0);
+
+    const hasAnyPricedRow = rows.some((row) =>
+        row.purchase_price !== null && row.purchase_price !== undefined && row.purchase_price !== ""
+    );
+
     const columns = [
 
         {
@@ -341,6 +363,24 @@ function ProjectPartsTab({ projectId }) {
         },
 
         {
+            field: "cost",
+            headerName: `Cost (${settings.currency_symbol})`,
+            width: 110,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+
+                const price = params.row.purchase_price;
+
+                if (price === null || price === undefined || price === "")
+                    return "—";
+
+                return `${(params.row.quantity * Number(price)).toFixed(2)} ${settings.currency_symbol}`;
+
+            }
+        },
+
+        {
             field: "actions",
             type: "actions",
             width: 130,
@@ -406,6 +446,25 @@ function ProjectPartsTab({ projectId }) {
                         color={shortageCount === 0 ? "success" : "error"}
                         label={shortageCount === 0 ? "Ready to build" : `${shortageCount} item${shortageCount === 1 ? "" : "s"} short`}
                     />
+
+                )}
+
+                {hasAnyPricedRow && (
+
+                    <Tooltip
+                        title={
+                            rows.some((row) => row.purchase_price === null || row.purchase_price === undefined || row.purchase_price === "")
+                                ? "Some parts have no price set -- they're excluded from this total"
+                                : ""
+                        }
+                    >
+                        <Chip
+                            size="small"
+                            variant="outlined"
+                            sx={{ ml: 1 }}
+                            label={`Total Cost: ${totalCost.toFixed(2)} ${settings.currency_symbol}`}
+                        />
+                    </Tooltip>
 
                 )}
 

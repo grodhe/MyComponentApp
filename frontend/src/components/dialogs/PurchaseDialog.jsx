@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { useSettings } from "../../context/SettingsContext";
+
 import {
     Dialog,
     DialogTitle,
@@ -12,7 +14,8 @@ import {
     FormControl,
     InputLabel,
     Select,
-    MenuItem
+    MenuItem,
+    InputAdornment
 } from "@mui/material";
 
 function today() {
@@ -44,6 +47,8 @@ function PurchaseDialog({
     onSave
 
 }) {
+
+    const { settings } = useSettings();
 
     const [quantity, setQuantity] = useState(1);
     const [unitPrice, setUnitPrice] = useState("");
@@ -130,6 +135,9 @@ function PurchaseDialog({
                             value={unitPrice}
                             onChange={(e) => setUnitPrice(e.target.value)}
                             inputProps={{ step: "0.01" }}
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">{settings.currency_symbol}</InputAdornment>
+                            }}
                         />
 
                     </Grid>

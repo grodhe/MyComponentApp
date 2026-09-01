@@ -636,5 +636,31 @@ CREATE TABLE IF NOT EXISTS purchases (
         CHECK (quantity > 0)
 );
 
+
+-- Generic items previously had no price field at all (Components got
+-- purchase_price as part of the Suppliers/Purchasing work; this closes the
+-- same gap for Generic Items so project cost rollups can include both).
+-- Idempotent -- safe to run against a database that's already been
+-- migrated.
+
+ALTER TABLE generic_items ADD COLUMN IF NOT EXISTS purchase_price NUMERIC(10, 2);
+
 CREATE INDEX IF NOT EXISTS idx_purchases_component ON purchases(component_id);
 CREATE INDEX IF NOT EXISTS idx_purchases_supplier ON purchases(supplier_id);
+
+
+-- General-purpose app-wide settings, as plain key/value text pairs --
+-- meant to hold small config values that shouldn't be hard-coded in the
+-- frontend (starting with the currency label shown next to prices), and
+-- to grow to hold future settings later without needing a new migration
+-- each time. Idempotent -- safe to run against a database that's already
+-- been migrated.
+
+CREATE TABLE IF NOT EXISTS app_settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT
+);
+
+INSERT INTO app_settings (key, value)
+VALUES ('currency_symbol', 'kr')
+ON CONFLICT (key) DO NOTHING;

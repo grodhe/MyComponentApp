@@ -27,6 +27,8 @@ const SELECT_FIELDS = `
     gi.reference_url,
     gi.notes,
 
+    gi.purchase_price,
+
     gi.created_at,
     gi.updated_at
 `;
@@ -93,10 +95,11 @@ async function create(data) {
             minimum_quantity,
             reference_url,
             notes,
+            purchase_price,
             created_at,
             updated_at
         ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW()
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW()
         )
         RETURNING id;
     `;
@@ -113,7 +116,8 @@ async function create(data) {
         data.quantity,
         data.minimum_quantity,
         data.reference_url,
-        data.notes
+        data.notes,
+        data.purchase_price
     ];
 
     const result = await pool.query(sql, values);
@@ -139,8 +143,9 @@ async function update(id, data) {
             minimum_quantity = $10,
             reference_url = $11,
             notes = $12,
+            purchase_price = $13,
             updated_at = NOW()
-        WHERE id = $13
+        WHERE id = $14
         RETURNING id;
     `;
 
@@ -157,6 +162,7 @@ async function update(id, data) {
         data.minimum_quantity,
         data.reference_url,
         data.notes,
+        data.purchase_price,
         id
     ];
 

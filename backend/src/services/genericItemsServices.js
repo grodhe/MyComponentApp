@@ -27,7 +27,12 @@ function normalize(data = {}) {
         quantity: toIntOrNull(data.quantity) ?? 0,
         minimum_quantity: toIntOrNull(data.minimum_quantity) ?? 0,
         reference_url: data.reference_url ?? "",
-        notes: data.notes ?? ""
+        notes: data.notes ?? "",
+        // Same "" -> null decimal coercion as componentsServices.js's
+        // purchase_price -- toIntOrNull works fine here too since Number()
+        // doesn't round, despite the name (it was written for quantity
+        // fields, but the logic is identical for a decimal like 12.5).
+        purchase_price: toIntOrNull(data.purchase_price)
     };
 
 }

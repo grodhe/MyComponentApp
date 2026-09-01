@@ -4,6 +4,7 @@ import { getCategories } from "../../services/categoryService";
 import { getLocations } from "../../services/locationService";
 import { getSuppliers } from "../../services/supplierService";
 import { getLocationPath } from "../../utils/locationTree";
+import { useSettings } from "../../context/SettingsContext";
 import {
     getGenericItemPhotoUrl,
     uploadGenericItemPhoto,
@@ -212,7 +213,9 @@ const emptyItem = {
 
     reference_url: "",
     barcode: "",
-    notes: ""
+    notes: "",
+
+    purchase_price: ""
 
 };
 
@@ -237,6 +240,8 @@ function GenericItemDialog({
     onSave
 
 }) {
+
+    const { settings } = useSettings();
 
     const [data, setData] = useState(emptyItem);
     const [categories, setCategories] = useState([]);
@@ -577,6 +582,23 @@ function GenericItemDialog({
                             name="minimum_quantity"
                             value={data.minimum_quantity}
                             onChange={handleChange}
+                        />
+
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 3 }}>
+
+                        <TextField
+                            fullWidth
+                            type="number"
+                            label="Purchase Price"
+                            name="purchase_price"
+                            placeholder="Unit price"
+                            value={data.purchase_price}
+                            onChange={handleChange}
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">{settings.currency_symbol}</InputAdornment>
+                            }}
                         />
 
                     </Grid>

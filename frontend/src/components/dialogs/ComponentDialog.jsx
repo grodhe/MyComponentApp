@@ -5,6 +5,7 @@ import { getCategories } from "../../services/categoryService";
 import { getLocations } from "../../services/locationService";
 import { getSuppliers } from "../../services/supplierService";
 import { getLocationPath } from "../../utils/locationTree";
+import { useSettings } from "../../context/SettingsContext";
 
 import {
     Dialog,
@@ -22,7 +23,9 @@ import {
     MenuItem,
     Divider,
 
-    Button
+    Button,
+
+    InputAdornment
 
 } from "@mui/material";
 
@@ -76,6 +79,8 @@ import {
 		onSave
 
 	}) {
+
+    const { settings } = useSettings();
 
     const [data, setData] = useState(emptyComponent);
     const [manufacturers, setManufacturers] = useState([]);
@@ -470,6 +475,9 @@ import {
                     placeholder="Unit price"
                     value={data.purchase_price}
                     onChange={handleChange}
+                    InputProps={{
+                        endAdornment: <InputAdornment position="end">{settings.currency_symbol}</InputAdornment>
+                    }}
                 />
 
             </Grid>

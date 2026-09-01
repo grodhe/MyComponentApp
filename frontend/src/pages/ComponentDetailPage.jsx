@@ -46,6 +46,7 @@ import {
     deletePurchase
 } from "../services/componentPurchaseService";
 import { getSuppliers } from "../services/supplierService";
+import { useSettings } from "../context/SettingsContext";
 import { PUBLIC_APP_BASE_URL } from "../config";
 
 import ComponentDialog from "../components/dialogs/ComponentDialog";
@@ -267,6 +268,7 @@ function ComponentDetailPage() {
 
     const { id } = useParams();
     const navigate = useNavigate();
+    const { settings } = useSettings();
 
     const [component, setComponent] = useState(null);
     const [transactions, setTransactions] = useState([]);
@@ -662,11 +664,11 @@ function ComponentDetailPage() {
                         />
 
                         <DetailField
-                            label="Purchase Price"
+                            label={`Purchase Price (${settings.currency_symbol})`}
                             value={
                                 component.purchase_price === null || component.purchase_price === undefined
                                     ? null
-                                    : Number(component.purchase_price).toFixed(2)
+                                    : `${Number(component.purchase_price).toFixed(2)} ${settings.currency_symbol}`
                             }
                         />
 
@@ -801,7 +803,7 @@ function ComponentDetailPage() {
                                 <TableRow>
                                     <TableCell>Date</TableCell>
                                     <TableCell align="right">Qty</TableCell>
-                                    <TableCell align="right">Unit Price</TableCell>
+                                    <TableCell align="right">{`Unit Price (${settings.currency_symbol})`}</TableCell>
                                     <TableCell>Supplier</TableCell>
                                     <TableCell>Supplier Part #</TableCell>
                                     <TableCell>Order Ref</TableCell>
@@ -827,7 +829,7 @@ function ComponentDetailPage() {
                                         <TableCell align="right">
                                             {p.unit_price === null || p.unit_price === undefined
                                                 ? "—"
-                                                : Number(p.unit_price).toFixed(2)}
+                                                : `${Number(p.unit_price).toFixed(2)} ${settings.currency_symbol}`}
                                         </TableCell>
 
                                         <TableCell>
