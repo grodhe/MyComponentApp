@@ -85,6 +85,11 @@ module.exports = {
         genericItemsDir: path.resolve(
             process.env.UPLOADS_DIR || path.join(__dirname, "../../uploads"),
             "generic-items"
+        ),
+
+        projectsDir: path.resolve(
+            process.env.UPLOADS_DIR || path.join(__dirname, "../../uploads"),
+            "projects"
         )
 
     }

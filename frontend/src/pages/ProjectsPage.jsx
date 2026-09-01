@@ -14,6 +14,7 @@ import ConfirmDialog from "../components/common/ConfirmDialog";
 import ProjectDialog from "../components/dialogs/ProjectDialog";
 
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 
 function ProjectsPage() {
@@ -169,6 +170,18 @@ function ProjectsPage() {
             field: "status",
             headerName: "Status",
             width: 140
+        },
+
+        {
+            field: "completed_date",
+            headerName: "Completed",
+            width: 130,
+            sortable: true,
+            renderCell: (params) => (
+                params.value
+                    ? <Chip size="small" color="success" label="Completed" />
+                    : null
+            )
         },
 
         {

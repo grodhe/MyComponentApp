@@ -12,6 +12,13 @@ const authRoutes = require("./routes/authRoutes");
 // the folder doesn't exist yet -- harmless if it's already there
 // (recursive + no error on existing dir).
 fs.mkdirSync(config.uploads.componentsDir, { recursive: true });
+// generic-items and projects were missing here -- multer's diskStorage
+// needs the destination folder to already exist and won't create it
+// itself, so an upload to either would fail with ENOENT on a brand new
+// UPLOADS_DIR volume that doesn't already happen to have these
+// subfolders in it.
+fs.mkdirSync(config.uploads.genericItemsDir, { recursive: true });
+fs.mkdirSync(config.uploads.projectsDir, { recursive: true });
 
 const app = express();
 

@@ -171,10 +171,24 @@ async function remove(id) {
 
 }
 
+// Used by the photo upload/delete endpoints so the frontend's cache-
+// busting query param (?v=updated_at) changes even though nothing else
+// about the project row changed -- see componentPhotoControllers.js for
+// the original version of this pattern.
+async function touchUpdatedAt(id) {
+
+    await pool.query(
+        `UPDATE ${schema}.projects SET updated_at = NOW() WHERE id = $1`,
+        [id]
+    );
+
+}
+
 module.exports = {
     getAll,
     getById,
     create,
     update,
-    remove
+    remove,
+    touchUpdatedAt
 };

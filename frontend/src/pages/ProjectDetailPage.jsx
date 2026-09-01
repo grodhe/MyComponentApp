@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import {
@@ -8,17 +8,167 @@ import {
     Button,
     Tabs,
     Tab,
-    Divider
+    Divider,
+    Chip
 } from "@mui/material";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AddAPhotoIcon from "@mui/icons-material/AddAPhoto";
+import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 
-import { getProject } from "../services/projectService";
+import {
+    getProject,
+    getProjectPhotoUrl,
+    uploadProjectPhoto,
+    deleteProjectPhoto
+} from "../services/projectService";
 
 import ProjectPartsTab from "../components/project-detail/ProjectPartsTab";
 import ProjectDocumentsTab from "../components/project-detail/ProjectDocumentsTab";
 import ProjectRepositoriesTab from "../components/project-detail/ProjectRepositoriesTab";
 import ProjectTasksTab from "../components/project-detail/ProjectTasksTab";
+
+// Mirrors ComponentPhoto on ComponentDetailPage.jsx -- see that component
+// for the reasoning (no "has a photo" flag in the DB, this just tries to
+// load the image and falls back to a placeholder on 404).
+function ProjectPhoto({ project, onChanged }) {
+
+    const [photoOk, setPhotoOk] = useState(true);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef(null);
+
+    useEffect(() => {
+
+        setPhotoOk(true);
+
+    }, [project.id, project.updated_at]);
+
+    async function handleFileChange(event) {
+
+        const file = event.target.files?.[0];
+
+        event.target.value = "";
+
+        if (!file)
+            return;
+
+        setUploading(true);
+
+        try {
+
+            await uploadProjectPhoto(project.id, file);
+            setPhotoOk(true);
+            onChanged();
+
+        } catch (err) {
+
+            console.error("Failed to upload photo:", err);
+            alert(`Failed to upload photo: ${err.message}`);
+
+        } finally {
+
+            setUploading(false);
+
+        }
+
+    }
+
+    async function handleRemove() {
+
+        try {
+
+            await deleteProjectPhoto(project.id);
+            setPhotoOk(false);
+            onChanged();
+
+        } catch (err) {
+
+            console.error("Failed to remove photo:", err);
+            alert(`Failed to remove photo: ${err.message}`);
+
+        }
+
+    }
+
+    const photoUrl = getProjectPhotoUrl(project.id, project.updated_at);
+
+    return (
+
+        <Stack alignItems="center" spacing={1}>
+
+            <Box
+                sx={{
+                    width: 160,
+                    height: 140,
+                    borderRadius: 1,
+                    overflow: "hidden",
+                    bgcolor: "grey.100",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "1px solid",
+                    borderColor: "divider",
+                    flexShrink: 0
+                }}
+            >
+
+                {photoOk ? (
+
+                    <Box
+                        component="img"
+                        src={photoUrl}
+                        alt={project.project_name}
+                        onError={() => setPhotoOk(false)}
+                        sx={{ width: "100%", height: "100%", objectFit: "contain" }}
+                    />
+
+                ) : (
+
+                    <ImageNotSupportedIcon color="disabled" fontSize="large" />
+
+                )}
+
+            </Box>
+
+            <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                ref={fileInputRef}
+                onChange={handleFileChange}
+            />
+
+            <Stack direction="row" spacing={1}>
+
+                <Button
+                    size="small"
+                    startIcon={<AddAPhotoIcon fontSize="small" />}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                >
+                    {photoOk ? "Change" : "Upload"}
+                </Button>
+
+                {photoOk && (
+
+                    <Button
+                        size="small"
+                        color="error"
+                        onClick={handleRemove}
+                        disabled={uploading}
+                    >
+                        Remove
+                    </Button>
+
+                )}
+
+            </Stack>
+
+        </Stack>
+
+    );
+
+}
 
 function ProjectDetailPage() {
 
@@ -63,22 +213,44 @@ function ProjectDetailPage() {
 
             {project && (
 
-                <Stack sx={{ mb: 3 }}>
+                <Stack direction="row" spacing={3} alignItems="flex-start" sx={{ mb: 3 }}>
 
-                    <Typography variant="h4" fontWeight="bold">
-                        {project.project_name}
-                    </Typography>
+                    <ProjectPhoto project={project} onChanged={loadProject} />
 
-                    <Typography variant="body2" color="text.secondary">
-                        {project.project_number}
-                        {project.version ? ` · v${project.version}` : ""}
-                    </Typography>
+                    <Stack sx={{ flex: 1, minWidth: 0 }}>
 
-                    {project.description && (
-                        <Typography sx={{ mt: 1 }}>
-                            {project.description}
+                        <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={2}
+                        >
+
+                            <Typography variant="h4" fontWeight="bold">
+                                {project.project_name}
+                            </Typography>
+
+                            {project.completed_date && (
+                                <Chip
+                                    size="small"
+                                    color="success"
+                                    label="Completed"
+                                />
+                            )}
+
+                        </Stack>
+
+                        <Typography variant="body2" color="text.secondary">
+                            {project.project_number}
+                            {project.version ? ` · v${project.version}` : ""}
                         </Typography>
-                    )}
+
+                        {project.description && (
+                            <Typography sx={{ mt: 1 }}>
+                                {project.description}
+                            </Typography>
+                        )}
+
+                    </Stack>
 
                 </Stack>
 
