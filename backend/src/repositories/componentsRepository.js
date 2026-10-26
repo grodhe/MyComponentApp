@@ -39,7 +39,9 @@ const SELECT_FIELDS = `
     s.name AS supplier,
 
     c.supplier_part_number,
-    c.purchase_price
+    c.purchase_price,
+
+    c.is_favorite
 `;
 
 const JOINS = `
@@ -251,7 +253,45 @@ async function findByBarcode(barcode) {
 
 }
 
+// Deliberately doesn't touch updated_at -- that column also cache-busts
+// the component photo URL, and starring a part shouldn't reload its image.
+async function setFavorite(id, isFavorite) {
+
+    const result = await pool.query(
+        `UPDATE ${schema}.components SET is_favorite = $1 WHERE id = $2 RETURNING id`,
+        [isFavorite, id]
+    );
+
+    if (result.rowCount === 0) {
+        return null;
+    }
+
+    return getById(id);
+
+}
+
+// Case-insensitive, whitespace-trimmed MPN match. excludeId lets the edit
+// form ignore the component being edited itself.
+async function findByMpn(mpn, excludeId = null) {
+
+    const result = await pool.query(
+        `
+        SELECT id, part_number, part_name, manufacturer_part_number
+        FROM ${schema}.components
+        WHERE LOWER(TRIM(manufacturer_part_number)) = LOWER(TRIM($1))
+          AND ($2::int IS NULL OR id <> $2::int)
+        ORDER BY part_number
+        `,
+        [mpn, excludeId]
+    );
+
+    return result.rows;
+
+}
+
 module.exports = {
+    setFavorite,
+    findByMpn,
     getAll,
     getById,
     create,

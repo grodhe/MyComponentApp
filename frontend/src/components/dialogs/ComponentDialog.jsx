@@ -4,6 +4,7 @@ import { getManufacturers } from "../../services/manufacturerService";
 import { getCategories } from "../../services/categoryService";
 import { getLocations } from "../../services/locationService";
 import { getSuppliers } from "../../services/supplierService";
+import { checkDuplicateMpn } from "../../services/componentService";
 import { getLocationPath } from "../../utils/locationTree";
 import { useSettings } from "../../context/SettingsContext";
 
@@ -165,7 +166,44 @@ import {
 
 	}
 
-    function handleSave() {
+    // Warns (but doesn't block) when another component already has this
+    // manufacturer part number -- there can be legitimate reasons, e.g.
+    // the same part in two bins, so the user gets a "save anyway" choice.
+    async function handleSave() {
+
+        const mpn = (data.manufacturer_part_number ?? "").trim();
+
+        if (mpn) {
+
+            try {
+
+                const matches = await checkDuplicateMpn(mpn, component?.id);
+
+                if (matches.length > 0) {
+
+                    const list = matches
+                        .slice(0, 5)
+                        .map((m) => `  - ${m.part_number}${m.part_name ? ` (${m.part_name})` : ""}`)
+                        .join("\n");
+
+                    const proceed = window.confirm(
+                        `Another component already has manufacturer part number "${mpn}":\n\n${list}\n\nSave anyway?`
+                    );
+
+                    if (!proceed) {
+                        return;
+                    }
+
+                }
+
+            } catch (err) {
+
+                // A failed check shouldn't stop the user from saving.
+                console.error("Duplicate check failed:", err);
+
+            }
+
+        }
 
         onSave(data);
 

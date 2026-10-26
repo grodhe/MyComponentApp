@@ -20,6 +20,7 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineOutlined";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
+import StarIcon from "@mui/icons-material/Star";
 
 import { getComponents } from "../services/componentService";
 import { getAllTransactions } from "../services/inventoryTransactionService";
@@ -164,6 +165,8 @@ function DashboardPage() {
     // as "not marked completed" via completed_date, rather than matching a
     // specific status name that might not exist in your data.
     const activeProjects = projects.filter((p) => !p.completed_date);
+
+    const favoriteItems = components.filter((c) => c.is_favorite);
 
     const recentlyAdded = components
         .slice()
@@ -339,6 +342,27 @@ function DashboardPage() {
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 6 }}>
+
+                    <ListSection
+                        title={`Favorites (${favoriteItems.length})`}
+                        items={favoriteItems}
+                        emptyText="No favorites yet -- click the star on a component to add one."
+                        renderItem={(c) => (
+
+                            <ListItemButton
+                                key={c.id}
+                                component={RouterLink}
+                                to={`/components/${c.id}`}
+                            >
+                                <StarIcon fontSize="small" color="warning" sx={{ mr: 1 }} />
+                                <ListItemText
+                                    primary={c.part_name ? `${c.part_number} — ${c.part_name}` : c.part_number}
+                                    secondary={`Qty: ${c.quantity}${c.location ? ` · ${c.location}` : ""}`}
+                                />
+                            </ListItemButton>
+
+                        )}
+                    />
 
                     <ListSection
                         title="Recently Added"

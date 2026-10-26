@@ -664,3 +664,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
 INSERT INTO app_settings (key, value)
 VALUES ('currency_symbol', 'kr')
 ON CONFLICT (key) DO NOTHING;
+
+
+-- Favorites flag for components. Idempotent.
+ALTER TABLE components ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN NOT NULL DEFAULT FALSE;

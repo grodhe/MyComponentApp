@@ -27,6 +27,8 @@ import AddAPhotoIcon from "@mui/icons-material/AddAPhoto";
 import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import DeleteIcon from "@mui/icons-material/Delete";
+import StarIcon from "@mui/icons-material/Star";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import IconButton from "@mui/material/IconButton";
@@ -35,6 +37,7 @@ import Tooltip from "@mui/material/Tooltip";
 import {
     getComponent,
     updateComponent,
+    setComponentFavorite,
     getComponentPhotoUrl,
     uploadComponentPhoto,
     deleteComponentPhoto
@@ -452,6 +455,23 @@ function ComponentDetailPage() {
 
     }
 
+    async function handleToggleFavorite() {
+
+        try {
+
+            const updated = await setComponentFavorite(component.id, !component.is_favorite);
+
+            setComponent(updated);
+
+        } catch (err) {
+
+            console.error("Failed to update favorite:", err);
+            alert(`Failed to update favorite: ${err.message}`);
+
+        }
+
+    }
+
     async function handleSaveEdit(data) {
 
         try {
@@ -506,6 +526,15 @@ function ComponentDetailPage() {
                         <Typography variant="h4" fontWeight="bold">
                             {component.part_name || component.part_number}
                         </Typography>
+
+                        <Tooltip title={component.is_favorite ? "Remove from favorites" : "Add to favorites"}>
+                            <IconButton
+                                color={component.is_favorite ? "warning" : "default"}
+                                onClick={handleToggleFavorite}
+                            >
+                                {component.is_favorite ? <StarIcon /> : <StarBorderIcon />}
+                            </IconButton>
+                        </Tooltip>
 
                         {lowStock && (
                             <Chip

@@ -22,6 +22,52 @@ async function getAllComponents(req, res) {
 
 }
 
+async function setFavorite(req, res) {
+
+    try {
+
+        const updated = await service.setFavorite(
+            req.params.id,
+            req.body && req.body.is_favorite
+        );
+
+        res.json(updated);
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(err.status || 500).json({
+            error: err.message
+        });
+
+    }
+
+}
+
+async function checkDuplicateMpn(req, res) {
+
+    try {
+
+        const matches = await service.findDuplicatesByMpn(
+            req.query.mpn,
+            req.query.excludeId
+        );
+
+        res.json(matches);
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            error: err.message
+        });
+
+    }
+
+}
+
 async function getComponentById(req, res) {
 
     try {
@@ -179,5 +225,7 @@ module.exports = {
     updateComponent,
     deleteComponent,
     exportComponentsCsv,
-    importComponentsCsv
+    importComponentsCsv,
+    setFavorite,
+    checkDuplicateMpn
 };

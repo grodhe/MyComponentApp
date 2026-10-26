@@ -88,6 +88,35 @@ async function updateComponent(id, data) {
 
 }
 
+async function setFavorite(id, isFavorite) {
+
+    const updated = await repository.setFavorite(id, Boolean(isFavorite));
+
+    if (!updated) {
+        const error = new Error(`Component ${id} not found`);
+        error.status = 404;
+        throw error;
+    }
+
+    return updated;
+
+}
+
+async function findDuplicatesByMpn(mpn, excludeId) {
+
+    if (!mpn || !String(mpn).trim()) {
+        return [];
+    }
+
+    const parsed = Number(excludeId);
+
+    return await repository.findByMpn(
+        String(mpn),
+        excludeId !== undefined && excludeId !== "" && !Number.isNaN(parsed) ? parsed : null
+    );
+
+}
+
 async function deleteComponent(id) {
 
     try {
@@ -116,6 +145,8 @@ module.exports = {
     createComponent,
     updateComponent,
     deleteComponent,
+    setFavorite,
+    findDuplicatesByMpn,
     // Exposed so the CSV import service can build a component record with
     // the exact same "" -> null / string -> number coercion used by the
     // normal add/edit form, instead of duplicating that logic.

@@ -6,6 +6,7 @@ import {
     Button,
     Chip,
     FormControl,
+    IconButton,
     InputLabel,
     MenuItem,
     Select,
@@ -13,12 +14,15 @@ import {
 } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import ClearIcon from "@mui/icons-material/Clear";
+import StarIcon from "@mui/icons-material/Star";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
 
 import {
     getComponents,
     createComponent,
     updateComponent,
     deleteComponent,
+    setComponentFavorite,
     getComponentPhotoUrl
 } from "../services/componentService";
 
@@ -190,7 +194,42 @@ function ComponentsPage() {
 
     }
 
+    async function handleToggleFavorite(row) {
+
+        try {
+
+            await setComponentFavorite(row.id, !row.is_favorite);
+            await loadComponents();
+
+        } catch (err) {
+
+            console.error("Failed to update favorite:", err);
+            alert(`Failed to update favorite: ${err.message}`);
+
+        }
+
+    }
+
     const columns = [
+
+        {
+            field: "is_favorite",
+            headerName: "",
+            width: 52,
+            type: "boolean",
+            renderCell: (params) => (
+                <IconButton
+                    size="small"
+                    color={params.row.is_favorite ? "warning" : "default"}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleFavorite(params.row);
+                    }}
+                >
+                    {params.row.is_favorite ? <StarIcon fontSize="small" /> : <StarBorderIcon fontSize="small" />}
+                </IconButton>
+            )
+        },
 
         {
             field: "photo",

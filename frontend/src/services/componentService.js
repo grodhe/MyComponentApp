@@ -26,6 +26,26 @@ export function updateComponent(id, data) {
 
 }
 
+export function setComponentFavorite(id, isFavorite) {
+
+    return api.put(`/components/${id}/favorite`, { is_favorite: isFavorite });
+
+}
+
+// Returns [] when nothing else has this manufacturer part number.
+// excludeId skips the component currently being edited.
+export function checkDuplicateMpn(mpn, excludeId) {
+
+    const params = new URLSearchParams({ mpn });
+
+    if (excludeId) {
+        params.set("excludeId", excludeId);
+    }
+
+    return api.get(`/components/check-duplicate?${params.toString()}`);
+
+}
+
 export function deleteComponent(id) {
 
     return api.delete(`/components/${id}`);

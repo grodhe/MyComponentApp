@@ -12,10 +12,12 @@ router.get("/", controller.getAllComponents);
 // getComponentById instead.
 router.get("/export/csv", controller.exportComponentsCsv);
 router.post("/import/csv", controller.importComponentsCsv);
+router.get("/check-duplicate", controller.checkDuplicateMpn);
 
 router.get("/:id", controller.getComponentById);
 router.post("/", controller.createComponent);
 router.put("/:id", controller.updateComponent);
+router.put("/:id/favorite", controller.setFavorite);
 router.delete("/:id", controller.deleteComponent);
 
 router.get("/:id/photo", photoController.getPhoto);
