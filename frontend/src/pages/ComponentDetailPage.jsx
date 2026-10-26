@@ -905,11 +905,17 @@ function ComponentDetailPage() {
                 onCancel={() => setPurchaseDeleteTarget(null)}
             />
 
+            {/*
+                Third line is Component Value (e.g. "10kΩ", "100nF"),
+                not Description -- it's usually much shorter and more
+                useful at a glance on a shelf than a free-text description,
+                which was the long line most likely to overflow the label.
+            */}
             <LabelPrintArea
                 lines={[
                     component?.part_number,
                     component?.part_name,
-                    component?.description
+                    component?.component_value
                 ]}
                 qrValue={component ? `${PUBLIC_APP_BASE_URL}/components/${component.id}` : null}
             />

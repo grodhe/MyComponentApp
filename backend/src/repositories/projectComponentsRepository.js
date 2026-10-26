@@ -11,6 +11,8 @@ const SELECT_FIELDS = `
     c.component_value,
     c.quantity AS available_quantity,
     c.purchase_price,
+    c.package,
+    c.supplier_part_number,
     c.updated_at,
 
     pc.quantity,

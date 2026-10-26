@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
 
 import { GridActionsCellItem } from "@mui/x-data-grid";
-import { Box, Button, Chip, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Chip, MenuItem, Select, Stack, Tooltip, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 
 import {
     getProjectComponents,
     createProjectComponent,
     updateProjectComponent,
-    deleteProjectComponent
+    deleteProjectComponent,
+    getProjectComponentsBomExportUrl
 } from "../../services/projectComponentService";
 
 import {
@@ -83,6 +85,11 @@ function ProjectPartsTab({ projectId }) {
 
     const [shoppingDialogOpen, setShoppingDialogOpen] = useState(false);
     const [shoppingInitialValues, setShoppingInitialValues] = useState(null);
+
+    // Which assembly house's column layout to export the BOM in -- see
+    // BOM_PROFILES in projectComponentsServices.js on the backend for
+    // what each one maps to.
+    const [bomProfile, setBomProfile] = useState("jlcpcb");
 
     async function load() {
 
@@ -469,6 +476,30 @@ function ProjectPartsTab({ projectId }) {
                 )}
 
                 <Box sx={{ flexGrow: 1 }} />
+
+                <Select
+                    size="small"
+                    value={bomProfile}
+                    onChange={(event) => setBomProfile(event.target.value)}
+                    sx={{ mr: 1, minWidth: 130 }}
+                >
+                    <MenuItem value="jlcpcb">JLCPCB</MenuItem>
+                    <MenuItem value="pcbway">PCBWay</MenuItem>
+                    <MenuItem value="seeed">Seeed Fusion</MenuItem>
+                </Select>
+
+                <Tooltip title="Export Components as an assembly BOM (CSV) -- includes a Part Number column for your own reference, which you'll likely want to delete before uploading it">
+                    <Button
+                        variant="outlined"
+                        startIcon={<FileDownloadIcon />}
+                        sx={{ mr: 1 }}
+                        onClick={() => {
+                            window.location.href = getProjectComponentsBomExportUrl(projectId, bomProfile);
+                        }}
+                    >
+                        Export BOM
+                    </Button>
+                </Tooltip>
 
                 <Button
                     variant="contained"
