@@ -22,7 +22,6 @@ function DataTable({
         <Paper
             elevation={2}
             sx={{
-                height: 650,
                 width: "100%"
             }}
         >
@@ -34,6 +33,11 @@ function DataTable({
                 columns={columns}
 
                 loading={loading}
+
+                // The grid grows to fit however many rows the current page
+                // size shows, so the whole page scrolls instead of the table
+                // scrolling inside a fixed-height box.
+                autoHeight
 
                 pageSizeOptions={[15, 25, 50, 100]}
 
