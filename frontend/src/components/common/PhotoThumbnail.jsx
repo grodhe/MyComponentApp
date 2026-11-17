@@ -12,7 +12,7 @@ import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 // icon size that reads better than letterboxing, unlike the full-size
 // display on the Component Detail page which intentionally shows the
 // whole, uncropped photo.
-function PhotoThumbnail({ src, alt = "", size = 32 }) {
+function PhotoThumbnail({ src, alt = "", size = 32, fit = "cover", frame = true }) {
 
     const [failed, setFailed] = useState(false);
 
@@ -32,11 +32,11 @@ function PhotoThumbnail({ src, alt = "", size = 32 }) {
                 height: size,
                 borderRadius: 0.5,
                 overflow: "hidden",
-                bgcolor: "grey.100",
+                bgcolor: frame ? "grey.100" : "transparent",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                border: "1px solid",
+                border: frame ? "1px solid" : 0,
                 borderColor: "divider",
                 flexShrink: 0
             }}
@@ -49,7 +49,7 @@ function PhotoThumbnail({ src, alt = "", size = 32 }) {
                     src={src}
                     alt={alt}
                     onError={() => setFailed(true)}
-                    sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    sx={{ width: "100%", height: "100%", objectFit: fit }}
                 />
 
             ) : (

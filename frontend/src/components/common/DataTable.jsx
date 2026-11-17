@@ -9,6 +9,10 @@ function DataTable({
 
     loading = false,
 
+    // Set to render the table as a roomier product-style list: taller
+    // rows, thin dividers between rows, no column separators.
+    listStyle = false,
+
     onRowDoubleClick,
 
     onRowClick,
@@ -96,11 +100,31 @@ function DataTable({
 
                 }}
 
-                density="compact"
+                density={listStyle ? "standard" : "compact"}
+
+                rowHeight={listStyle ? 72 : undefined}
+
+                disableColumnMenu={listStyle}
 
                 sx={{
 
                     border: 0,
+
+                    ...(listStyle && {
+                        "& .MuiDataGrid-columnSeparator": { display: "none" },
+                        "& .MuiDataGrid-columnHeaders": {
+                            borderBottom: "1px solid",
+                            borderColor: "text.disabled"
+                        },
+                        "& .MuiDataGrid-row": {
+                            borderBottom: "1px solid",
+                            borderColor: "divider"
+                        },
+                        "& .MuiDataGrid-cell": {
+                            borderTop: 0,
+                            outline: "none !important"
+                        }
+                    }),
 
                     "& .MuiDataGrid-row:hover": {
                         cursor: "pointer"

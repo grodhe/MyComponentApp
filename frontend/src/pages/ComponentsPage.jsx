@@ -234,14 +234,16 @@ function ComponentsPage() {
         {
             field: "photo",
             headerName: "",
-            width: 52,
+            width: 92,
             sortable: false,
             filterable: false,
             renderCell: (params) => (
                 <PhotoThumbnail
                     src={getComponentPhotoUrl(params.row.id, params.row.updated_at)}
                     alt={params.row.part_number}
-                    size={36}
+                    size={60}
+                    fit="contain"
+                    frame={false}
                 />
             )
         },
@@ -249,19 +251,32 @@ function ComponentsPage() {
         {
             field: "part_number",
             headerName: "Part Number",
-            width: 170
+            width: 150,
+            renderCell: (params) => (
+                <Box sx={{ fontFamily: "monospace", fontWeight: 600 }}>
+                    {params.value}
+                </Box>
+            )
         },
 
+        // Part name and description share one cell: name in bold, the
+        // description as a grey second line (sorts/filters by name).
         {
             field: "part_name",
             headerName: "Part Name",
-            flex: 2
-        },
-
-        {
-            field: "description",
-            headerName: "Description",
-            flex: 2
+            flex: 3,
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+                    <Box sx={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {params.row.part_name || params.row.part_number}
+                    </Box>
+                    {params.row.description && (
+                        <Box sx={{ color: "text.secondary", fontSize: "0.85em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {params.row.description}
+                        </Box>
+                    )}
+                </Box>
+            )
         },
 
         {
@@ -539,6 +554,8 @@ function ComponentsPage() {
                 rows={filteredComponents}
 
                 columns={columns}
+
+                listStyle
 
                 onSelectionChange={setSelectedComponent}
 
