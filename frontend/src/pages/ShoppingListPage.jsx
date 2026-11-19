@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { Box } from "@mui/material";
+
 import {
     getShoppingListItems,
     createShoppingListItem,
@@ -8,6 +10,9 @@ import {
 } from "../services/shoppingListService";
 
 import DataTable from "../components/common/DataTable";
+import PhotoThumbnail from "../components/common/PhotoThumbnail";
+import { getComponentPhotoUrl } from "../services/componentService";
+import { getGenericItemPhotoUrl } from "../services/genericItemService";
 import CrudToolbar from "../components/common/CrudToolbar";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 import ShoppingListItemDialog from "../components/dialogs/ShoppingListItemDialog";
@@ -16,6 +21,10 @@ function itemLabel(row) {
 
     if (row.component_id) {
         return row.part_name ? `${row.part_number} — ${row.part_name}` : row.part_number;
+    }
+
+    if (row.generic_item_id && row.generic_item_name) {
+        return row.generic_item_name;
     }
 
     return row.description;
@@ -148,11 +157,37 @@ function ShoppingListPage() {
 
     const columns = [
 
+        // Only items linked to a component have a photo; free-text items
+        // show the placeholder.
+        {
+            field: "photo",
+            headerName: "",
+            width: 92,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => (
+                <PhotoThumbnail
+                    src={params.row.component_id
+                        ? getComponentPhotoUrl(params.row.component_id, params.row.component_updated_at)
+                        : params.row.generic_item_id
+                            ? getGenericItemPhotoUrl(params.row.generic_item_id, params.row.generic_item_updated_at)
+                            : null}
+                    alt={itemLabel(params.row)}
+                    size={60}
+                    fit="contain"
+                    frame={false}
+                />
+            )
+        },
+
         {
             field: "item",
             headerName: "Item",
             flex: 2,
-            valueGetter: (value, row) => itemLabel(row)
+            valueGetter: (value, row) => itemLabel(row),
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 600 }}>{params.value}</Box>
+            )
         },
 
         {
@@ -221,6 +256,8 @@ function ShoppingListPage() {
                 rows={filteredItems}
 
                 columns={columns}
+
+                listStyle
 
                 onSelectionChange={setSelectedItem}
 

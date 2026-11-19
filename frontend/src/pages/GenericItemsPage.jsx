@@ -211,28 +211,37 @@ function GenericItemsPage() {
         {
             field: "photo",
             headerName: "",
-            width: 52,
+            width: 92,
             sortable: false,
             filterable: false,
             renderCell: (params) => (
                 <PhotoThumbnail
                     src={getGenericItemPhotoUrl(params.row.id, params.row.updated_at)}
                     alt={params.row.name}
-                    size={36}
+                    size={60}
+                    fit="contain"
+                    frame={false}
                 />
             )
         },
 
+        // Name in bold with the description as a grey second line.
         {
             field: "name",
             headerName: "Name",
-            flex: 2
-        },
-
-        {
-            field: "description",
-            headerName: "Description",
-            flex: 2
+            flex: 3,
+            renderCell: (params) => (
+                <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
+                    <Box sx={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {params.row.name}
+                    </Box>
+                    {params.row.description && (
+                        <Box sx={{ color: "text.secondary", fontSize: "0.85em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {params.row.description}
+                        </Box>
+                    )}
+                </Box>
+            )
         },
 
         {
@@ -442,6 +451,8 @@ function GenericItemsPage() {
                 rows={filteredItems}
 
                 columns={columns}
+
+                listStyle
 
                 onSelectionChange={setSelectedItem}
 

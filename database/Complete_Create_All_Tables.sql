@@ -668,3 +668,27 @@ ON CONFLICT (key) DO NOTHING;
 
 -- Favorites flag for components. Idempotent.
 ALTER TABLE components ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN NOT NULL DEFAULT FALSE;
+
+
+
+-- Lets a shopping list item point at a Generic Item (so its photo and name
+-- can be shown), not just a component. Idempotent.
+ALTER TABLE shopping_list_items ADD COLUMN IF NOT EXISTS generic_item_id BIGINT;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'fk_shopping_list_generic_item'
+    ) THEN
+        ALTER TABLE shopping_list_items
+            ADD CONSTRAINT fk_shopping_list_generic_item
+            FOREIGN KEY (generic_item_id) REFERENCES generic_items(id) ON DELETE SET NULL;
+    END IF;
+END $$;
+
+ALTER TABLE shopping_list_items DROP CONSTRAINT IF EXISTS chk_shopping_list_has_label;
+ALTER TABLE shopping_list_items
+    ADD CONSTRAINT chk_shopping_list_has_label
+    CHECK (component_id IS NOT NULL OR generic_item_id IS NOT NULL OR description IS NOT NULL);
+
+CREATE INDEX IF NOT EXISTS idx_shopping_list_generic_item ON shopping_list_items(generic_item_id);

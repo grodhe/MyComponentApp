@@ -19,6 +19,8 @@ function normalize(data = {}) {
 
     return {
         component_id: toIntOrNull(data.component_id),
+        // A component and a generic item are mutually exclusive.
+        generic_item_id: data.component_id ? null : toIntOrNull(data.generic_item_id),
         description: (data.description ?? "").trim() || null,
         quantity_needed: quantity === null ? 1 : quantity,
         notes: data.notes ?? ""
@@ -28,7 +30,7 @@ function normalize(data = {}) {
 
 function validate(normalized) {
 
-    if (!normalized.component_id && !normalized.description) {
+    if (!normalized.component_id && !normalized.generic_item_id && !normalized.description) {
         const error = new Error("Pick a component or type a description for this item.");
         error.status = 400;
         throw error;

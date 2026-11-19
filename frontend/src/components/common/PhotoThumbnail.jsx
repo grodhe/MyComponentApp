@@ -42,7 +42,7 @@ function PhotoThumbnail({ src, alt = "", size = 32, fit = "cover", frame = true 
             }}
         >
 
-            {!failed ? (
+            {!failed && src ? (
 
                 <Box
                     component="img"

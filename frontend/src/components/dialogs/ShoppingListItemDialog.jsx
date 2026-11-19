@@ -15,9 +15,11 @@ import {
 } from "@mui/material";
 
 import { getComponents } from "../../services/componentService";
+import { getGenericItems } from "../../services/genericItemService";
 
 const emptyItem = {
     component_id: "",
+    generic_item_id: "",
     description: "",
     quantity_needed: 1,
     notes: ""
@@ -31,6 +33,7 @@ function ShoppingListItemDialog({ open, mode = "add", item, initialValues, onClo
 
     const [data, setData] = useState(emptyItem);
     const [components, setComponents] = useState([]);
+    const [genericItems, setGenericItems] = useState([]);
 
     useEffect(() => {
 
@@ -41,10 +44,15 @@ function ShoppingListItemDialog({ open, mode = "add", item, initialValues, onClo
             .then(setComponents)
             .catch((err) => console.error("Failed to load components:", err));
 
+        getGenericItems()
+            .then(setGenericItems)
+            .catch((err) => console.error("Failed to load generic items:", err));
+
         if (mode === "edit" && item) {
 
             setData({
                 component_id: item.component_id ?? "",
+                generic_item_id: item.generic_item_id ?? "",
                 description: item.description ?? "",
                 quantity_needed: item.quantity_needed ?? 1,
                 notes: item.notes ?? ""
@@ -65,8 +73,15 @@ function ShoppingListItemDialog({ open, mode = "add", item, initialValues, onClo
 
         const { name, value } = event.target;
 
+        // A component and a generic item are mutually exclusive.
+        const exclusive =
+            name === "component_id" && value ? { generic_item_id: "" }
+            : name === "generic_item_id" && value ? { component_id: "" }
+            : {};
+
         setData({
             ...data,
+            ...exclusive,
             [name]: value
         });
 
@@ -79,7 +94,8 @@ function ShoppingListItemDialog({ open, mode = "add", item, initialValues, onClo
     }
 
     const hasComponent = !!data.component_id;
-    const canSave = hasComponent || data.description.trim().length > 0;
+    const hasGeneric = !!data.generic_item_id;
+    const canSave = hasComponent || hasGeneric || data.description.trim().length > 0;
 
     return (
 
@@ -129,7 +145,38 @@ function ShoppingListItemDialog({ open, mode = "add", item, initialValues, onClo
 
                     </Grid>
 
-                    {!hasComponent && (
+                    <Grid size={12}>
+
+                        <FormControl fullWidth>
+
+                            <InputLabel>Generic item (optional)</InputLabel>
+
+                            <Select
+                                label="Generic item (optional)"
+                                name="generic_item_id"
+                                value={data.generic_item_id}
+                                onChange={handleChange}
+                            >
+
+                                <MenuItem value="">
+                                    <em>None</em>
+                                </MenuItem>
+
+                                {genericItems.map((g) => (
+
+                                    <MenuItem key={g.id} value={g.id}>
+                                        {g.name}
+                                    </MenuItem>
+
+                                ))}
+
+                            </Select>
+
+                        </FormControl>
+
+                    </Grid>
+
+                    {!hasComponent && !hasGeneric && (
 
                         <Grid size={12}>
 

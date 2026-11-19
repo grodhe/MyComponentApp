@@ -226,6 +226,7 @@ function ProjectPartsTab({ projectId }) {
                     quantity_needed: Math.max(1, shortfall)
                 }
                 : {
+                    generic_item_id: row.generic_item_id,
                     description: row.displayName,
                     quantity_needed: Math.max(1, shortfall)
                 }
@@ -292,7 +293,7 @@ function ProjectPartsTab({ projectId }) {
         {
             field: "photo",
             headerName: "",
-            width: 52,
+            width: 92,
             sortable: false,
             filterable: false,
             renderCell: (params) => (
@@ -301,7 +302,9 @@ function ProjectPartsTab({ projectId }) {
                         ? getComponentPhotoUrl(params.row.component_id, params.row.updated_at)
                         : getGenericItemPhotoUrl(params.row.generic_item_id, params.row.updated_at)}
                     alt={params.row.displayName}
-                    size={36}
+                    size={60}
+                    fit="contain"
+                    frame={false}
                 />
             )
         },
@@ -309,7 +312,10 @@ function ProjectPartsTab({ projectId }) {
         {
             field: "displayName",
             headerName: "Part",
-            flex: 1.5
+            flex: 1.5,
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 600 }}>{params.value}</Box>
+            )
         },
 
         {
@@ -514,6 +520,7 @@ function ProjectPartsTab({ projectId }) {
             <DataTable
                 rows={rows}
                 columns={columns}
+                listStyle
                 onRowDoubleClick={(params) => handleEdit(params.row)}
             />
 
