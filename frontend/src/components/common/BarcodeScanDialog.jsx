@@ -13,8 +13,7 @@ import {
     CircularProgress
 } from "@mui/material";
 
-import { PUBLIC_APP_BASE_URL } from "../../config";
-import { lookupInventoryByBarcode } from "../../services/inventoryLookupService";
+import { handleScannedValue } from "../../utils/handleScan";
 
 // Works with any USB/Bluetooth "keyboard wedge" barcode scanner -- those
 // just type the scanned code into whatever's focused and hit Enter, so
@@ -29,7 +28,19 @@ import { lookupInventoryByBarcode } from "../../services/inventoryLookupService"
 //    components, then generic items. A match navigates to that record; no
 //    match offers to open the Add dialog for either kind, prefilled with
 //    the scanned code.
-function BarcodeScanDialog({ open, onClose }) {
+// Search links for a code that isn't in the inventory yet. Electrokit and
+// Elfa go through a Google "site:" search since their own search URLs
+// aren't stable to rely on.
+const SUPPLIER_SEARCHES = [
+    { label: "Electrokit", url: (q) => `https://www.google.com/search?q=${encodeURIComponent(`site:electrokit.com ${q}`)}` },
+    { label: "Elfa", url: (q) => `https://www.google.com/search?q=${encodeURIComponent(`site:elfa.se ${q}`)}` },
+    { label: "LCSC", url: (q) => `https://www.lcsc.com/search?q=${encodeURIComponent(q)}` },
+    { label: "Mouser", url: (q) => `https://www.mouser.com/c/?q=${encodeURIComponent(q)}` },
+    { label: "Digi-Key", url: (q) => `https://www.digikey.com/en/products/result?keywords=${encodeURIComponent(q)}` },
+    { label: "Google", url: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}` }
+];
+
+function BarcodeScanDialog({ open, onClose, initialValue = "" }) {
 
     const navigate = useNavigate();
     const inputRef = useRef(null);
@@ -43,8 +54,10 @@ function BarcodeScanDialog({ open, onClose }) {
         if (!open)
             return;
 
-        setValue("");
-        setStatus("idle");
+        // initialValue is set when the always-on scanner already looked a
+        // code up and found nothing -- go straight to the "add it" choices.
+        setValue(initialValue);
+        setStatus(initialValue ? "notFound" : "idle");
         setErrorMessage("");
 
         // Slight delay so focus lands after the dialog's open animation,
@@ -53,7 +66,7 @@ function BarcodeScanDialog({ open, onClose }) {
 
         return () => clearTimeout(timer);
 
-    }, [open]);
+    }, [open, initialValue]);
 
     async function handleSubmit(event) {
 
@@ -64,35 +77,20 @@ function BarcodeScanDialog({ open, onClose }) {
         if (!scanned)
             return;
 
-        if (scanned.startsWith(PUBLIC_APP_BASE_URL)) {
-
-            const path = scanned.slice(PUBLIC_APP_BASE_URL.length) || "/";
-
-            navigate(path);
-            onClose();
-
-            return;
-
-        }
-
         setStatus("searching");
         setErrorMessage("");
 
         try {
 
-            const result = await lookupInventoryByBarcode(scanned);
+            // Handles our own label URLs, supplier bag labels (LCSC,
+            // Digi-Key) and plain inventory barcodes -- see utils/handleScan.
+            const outcome = await handleScannedValue(scanned, navigate);
 
-            if (!result) {
+            if (outcome === "notFound") {
 
                 setStatus("notFound");
                 return;
 
-            }
-
-            if (result.type === "component") {
-                navigate(`/components/${result.id}`);
-            } else {
-                navigate(`/generic-items?open=${result.id}`);
             }
 
             onClose();
@@ -175,6 +173,27 @@ function BarcodeScanDialog({ open, onClose }) {
                                 <Typography variant="body2" color="text.secondary">
                                     No component or generic item found for "{value.trim()}".
                                 </Typography>
+
+                                <Typography variant="body2">
+                                    Look it up at a supplier (opens a new tab):
+                                </Typography>
+
+                                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+
+                                    {SUPPLIER_SEARCHES.map((s) => (
+
+                                        <Button
+                                            key={s.label}
+                                            size="small"
+                                            variant="text"
+                                            onClick={() => window.open(s.url(value.trim()), "_blank", "noopener")}
+                                        >
+                                            {s.label}
+                                        </Button>
+
+                                    ))}
+
+                                </Stack>
 
                                 <Stack direction="row" spacing={1}>
 

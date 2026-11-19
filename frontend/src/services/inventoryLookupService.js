@@ -9,8 +9,22 @@ const API_URL = import.meta.env.VITE_API_URL;
 // message -- same reasoning as the photo endpoints.
 export async function lookupInventoryByBarcode(barcode) {
 
+    return lookup(`barcode=${encodeURIComponent(barcode)}`);
+
+}
+
+// Supplier-label scan: finds an existing component by supplier part number
+// and/or manufacturer part number. Returns null when nothing matches.
+export async function lookupInventoryBySupplierPart({ spn = "", mpn = "" }) {
+
+    return lookup(`spn=${encodeURIComponent(spn)}&mpn=${encodeURIComponent(mpn)}`);
+
+}
+
+async function lookup(query) {
+
     const response = await fetch(
-        `${API_URL}/inventory-lookup?barcode=${encodeURIComponent(barcode)}`,
+        `${API_URL}/inventory-lookup?${query}`,
         { credentials: "include" }
     );
 

@@ -3,6 +3,7 @@ import Toolbar from "@mui/material/Toolbar";
 
 import Header from "./Header";
 import Navigation from "./Navigation";
+import GlobalScanner from "../common/GlobalScanner";
 
 const drawerWidth = 240;
 
@@ -15,6 +16,8 @@ function Layout({ children }) {
             <Header />
 
             <Navigation />
+
+            <GlobalScanner />
              <Box
                component="main"
                sx={{

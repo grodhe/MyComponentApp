@@ -289,7 +289,30 @@ async function findByMpn(mpn, excludeId = null) {
 
 }
 
+// Used by the supplier-label scan: matches an existing component by the
+// supplier's part number or the manufacturer part number (case-insensitive,
+// trimmed). Either argument may be empty.
+async function findBySupplierPartOrMpn(supplierPartNumber, mpn) {
+
+    const sql = `
+        ${locationPathCte()}
+        SELECT
+            ${SELECT_FIELDS}
+        ${JOINS}
+        WHERE ($1 <> '' AND LOWER(TRIM(c.supplier_part_number)) = LOWER(TRIM($1)))
+           OR ($2 <> '' AND LOWER(TRIM(c.manufacturer_part_number)) = LOWER(TRIM($2)))
+        ORDER BY c.id
+        LIMIT 1;
+    `;
+
+    const result = await pool.query(sql, [supplierPartNumber || "", mpn || ""]);
+
+    return result.rows[0];
+
+}
+
 module.exports = {
+    findBySupplierPartOrMpn,
     setFavorite,
     findByMpn,
     getAll,

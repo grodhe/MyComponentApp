@@ -12,11 +12,35 @@ async function lookupByBarcode(req, res) {
     try {
 
         const barcode = (req.query.barcode || "").trim();
+        const spn = (req.query.spn || "").trim();
+        const mpn = (req.query.mpn || "").trim();
+
+        // Supplier-label scan: match by supplier part number / MPN instead
+        // of our own barcode field.
+        if (!barcode && (spn || mpn)) {
+
+            const match = await componentsRepository.findBySupplierPartOrMpn(spn, mpn);
+
+            if (match) {
+
+                return res.json({
+                    type: "component",
+                    id: match.id,
+                    displayName: `${match.part_number}${match.part_name ? ` - ${match.part_name}` : ""}`
+                });
+
+            }
+
+            return res.status(404).json({
+                error: "No component found for that supplier/manufacturer part number."
+            });
+
+        }
 
         if (!barcode) {
 
             return res.status(400).json({
-                error: "A barcode query parameter is required."
+                error: "A barcode, spn or mpn query parameter is required."
             });
 
         }

@@ -55,6 +55,7 @@ function ComponentsPage() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogMode, setDialogMode] = useState("add");
     const [prefillBarcode, setPrefillBarcode] = useState(null);
+    const [prefillValues, setPrefillValues] = useState(null);
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -84,6 +85,39 @@ function ComponentsPage() {
     // that code already filled in, so scanning something new can go
     // straight into "create a record for this" instead of needing it
     // typed in twice.
+    // A scanned supplier label (LCSC, Digi-Key...) for a part we don't have:
+    // ?addSpn / addMpn / addQty open the Add dialog prefilled.
+    useEffect(() => {
+
+        const spn = searchParams.get("addSpn");
+        const mpn = searchParams.get("addMpn");
+        const qty = searchParams.get("addQty");
+        const raw = searchParams.get("addRaw");
+
+        if (!spn && !mpn)
+            return;
+
+        setDialogMode("add");
+        setSelectedComponent(null);
+        setPrefillBarcode(raw || null);
+        setPrefillValues({
+            part_number: mpn || spn,
+            manufacturer_part_number: mpn || "",
+            supplier_part_number: spn || "",
+            ...(qty ? { quantity: Number(qty) } : {})
+        });
+        setDialogOpen(true);
+
+        setSearchParams((params) => {
+            params.delete("addSpn");
+            params.delete("addMpn");
+            params.delete("addQty");
+            params.delete("addRaw");
+            return params;
+        }, { replace: true });
+
+    }, [searchParams, setSearchParams]);
+
     useEffect(() => {
 
         const addBarcode = searchParams.get("addBarcode");
@@ -94,6 +128,7 @@ function ComponentsPage() {
         setDialogMode("add");
         setSelectedComponent(null);
         setPrefillBarcode(addBarcode);
+        setPrefillValues(null);
         setDialogOpen(true);
 
         setSearchParams((params) => {
@@ -108,6 +143,7 @@ function ComponentsPage() {
         setDialogMode("add");
         setSelectedComponent(null);
         setPrefillBarcode(null);
+        setPrefillValues(null);
         setDialogOpen(true);
 
     }
@@ -572,6 +608,8 @@ function ComponentsPage() {
                 component={dialogMode === "edit" ? selectedComponent : null}
 
                 defaultBarcode={prefillBarcode}
+
+                defaultValues={prefillValues}
 
                 onClose={handleClose}
 

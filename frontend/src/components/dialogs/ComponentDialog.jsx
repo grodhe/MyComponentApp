@@ -75,6 +75,10 @@ import {
 		// dialog after a scan didn't match anything existing.
 		defaultBarcode = null,
 
+		// Extra prefilled fields, e.g. from a scanned supplier label
+		// ({ part_number, manufacturer_part_number, supplier_part_number, quantity }).
+		defaultValues = null,
+
 		onClose,
 
 		onSave
@@ -142,14 +146,15 @@ import {
 			setData({
 				...emptyComponent,
 				location_id: defaultLocationId ?? "",
-				barcode: defaultBarcode ?? ""
+				barcode: defaultBarcode ?? "",
+				...(defaultValues ?? {})
 			});
 
 		}
 
 		loadLookups();
 
-	}, [open, mode, component, defaultLocationId, defaultBarcode]);
+	}, [open, mode, component, defaultLocationId, defaultBarcode, defaultValues]);
 
 
 	function handleChange(event) {
@@ -578,7 +583,7 @@ import {
 
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, md: 12 }}>
 
                 <TextField
                     fullWidth

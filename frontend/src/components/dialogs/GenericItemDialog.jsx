@@ -622,7 +622,7 @@ function GenericItemDialog({
 
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 6 }}>
+                    <Grid size={{ xs: 12, md: 12 }}>
 
                         <TextField
                             fullWidth
