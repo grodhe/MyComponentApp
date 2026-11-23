@@ -199,12 +199,14 @@ function ShoppingListPage() {
 
         {
             field: "notes",
+            hideOnMobile: true,
             headerName: "Notes",
             flex: 2
         },
 
         {
             field: "created_at",
+            hideOnMobile: true,
             headerName: "Added",
             width: 130,
             valueGetter: (value) => value ? new Date(value).toLocaleDateString() : ""

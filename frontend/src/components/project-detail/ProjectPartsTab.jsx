@@ -320,6 +320,7 @@ function ProjectPartsTab({ projectId }) {
 
         {
             field: "detail",
+            hideOnMobile: true,
             headerName: "Value / Unit",
             width: 110
         },
@@ -333,6 +334,7 @@ function ProjectPartsTab({ projectId }) {
 
         {
             field: "available_quantity",
+            hideOnMobile: true,
             headerName: "Available",
             type: "number",
             width: 100
@@ -365,18 +367,21 @@ function ProjectPartsTab({ projectId }) {
 
         {
             field: "reference_designators",
+            hideOnMobile: true,
             headerName: "Ref Designators",
             width: 160
         },
 
         {
             field: "notes",
+            hideOnMobile: true,
             headerName: "Notes",
             flex: 1
         },
 
         {
             field: "cost",
+            hideOnMobile: true,
             headerName: `Cost (${settings.currency_symbol})`,
             width: 110,
             sortable: false,
@@ -444,6 +449,9 @@ function ProjectPartsTab({ projectId }) {
             <Stack
                 direction="row"
                 alignItems="center"
+                flexWrap="wrap"
+                useFlexGap
+                spacing={1}
                 sx={{ mb: 2 }}
             >
 
@@ -455,7 +463,7 @@ function ProjectPartsTab({ projectId }) {
 
                     <Chip
                         size="small"
-                        sx={{ ml: 2 }}
+                        sx={{ ml: 1 }}
                         color={shortageCount === 0 ? "success" : "error"}
                         label={shortageCount === 0 ? "Ready to build" : `${shortageCount} item${shortageCount === 1 ? "" : "s"} short`}
                     />

@@ -42,6 +42,9 @@ function CrudToolbar({
                 direction="row"
                 justifyContent="space-between"
                 alignItems="center"
+                flexWrap="wrap"
+                useFlexGap
+                spacing={1}
                 sx={{ mb: 2 }}
             >
 
@@ -57,6 +60,8 @@ function CrudToolbar({
                 <Stack
                     direction="row"
                     spacing={1}
+                    flexWrap="wrap"
+                    useFlexGap
                 >
 
                     {extraActions}

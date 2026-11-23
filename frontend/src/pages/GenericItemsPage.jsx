@@ -229,10 +229,11 @@ function GenericItemsPage() {
         {
             field: "name",
             headerName: "Name",
-            flex: 3,
+            flex: 8,
+            minWidth: 260,
             renderCell: (params) => (
                 <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
-                    <Box sx={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <Box sx={{ fontWeight: 600, overflow: "hidden", whiteSpace: "normal", overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
                         {params.row.name}
                     </Box>
                     {params.row.description && (
@@ -246,6 +247,7 @@ function GenericItemsPage() {
 
         {
             field: "category",
+            hideOnMobile: true,
             headerName: "Category",
             width: 140
         },
@@ -253,11 +255,30 @@ function GenericItemsPage() {
         {
             field: "location",
             headerName: "Location",
-            width: 140
+            width: 90,
+            // Narrow column; long paths wrap onto up to two lines.
+            renderCell: (params) => (
+                <Box
+                    sx={{
+                        fontSize: "0.85em",
+                        lineHeight: 1.25,
+                        whiteSpace: "normal",
+                        overflowWrap: "anywhere",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden"
+                    }}
+                    title={params.value ?? ""}
+                >
+                    {params.value}
+                </Box>
+            )
         },
 
         {
             field: "supplier",
+            hideOnMobile: true,
             headerName: "Supplier",
             width: 140
         },
@@ -271,6 +292,7 @@ function GenericItemsPage() {
 
         {
             field: "unit",
+            hideOnMobile: true,
             headerName: "Unit",
             width: 90
         }

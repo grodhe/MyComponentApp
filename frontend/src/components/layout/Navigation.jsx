@@ -4,7 +4,8 @@ import {
     Toolbar,
     List,
     ListItemButton,
-    ListItemText
+    ListItemText,
+    useMediaQuery
 
 } from "@mui/material";
 
@@ -71,16 +72,20 @@ const menu = [
 
 ];
 
-function Navigation() {
+function Navigation({ mobileOpen = false, onMobileClose }) {
 
     const location = useLocation();
+    const isMobile = useMediaQuery((theme) => theme.breakpoints.down("md"));
 
     return (
 
         <Drawer
-            variant="permanent"
+            variant={isMobile ? "temporary" : "permanent"}
+            open={isMobile ? mobileOpen : true}
+            onClose={onMobileClose}
+            ModalProps={{ keepMounted: true }}
             sx={{
-                width: drawerWidth,
+                width: isMobile ? 0 : drawerWidth,
                 flexShrink: 0,
                "& .MuiDrawer-paper": {
                   width: drawerWidth,
@@ -105,6 +110,8 @@ function Navigation() {
                         to={item.path}
 
                         selected={location.pathname === item.path}
+
+                        onClick={isMobile ? onMobileClose : undefined}
 
                     >
 

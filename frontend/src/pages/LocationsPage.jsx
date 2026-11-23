@@ -328,6 +328,9 @@ function LocationsPage() {
             <Stack
                 direction="row"
                 alignItems="center"
+                flexWrap="wrap"
+                useFlexGap
+                spacing={1}
                 sx={{ mb: 3 }}
             >
 

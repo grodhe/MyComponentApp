@@ -213,19 +213,21 @@ function ProjectDetailPage() {
 
             {project && (
 
-                <Stack direction="row" spacing={3} alignItems="flex-start" sx={{ mb: 3 }}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 2, sm: 3 }} alignItems={{ xs: "center", sm: "flex-start" }} sx={{ mb: 3 }}>
 
                     <ProjectPhoto project={project} onChanged={loadProject} />
 
-                    <Stack sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack sx={{ flex: 1, minWidth: 0, width: "100%" }}>
 
                         <Stack
                             direction="row"
                             alignItems="center"
-                            spacing={2}
+                            flexWrap="wrap"
+                            useFlexGap
+                            spacing={1}
                         >
 
-                            <Typography variant="h4" fontWeight="bold">
+                            <Typography variant="h4" fontWeight="bold" sx={{ fontSize: { xs: "1.5rem", md: "2.125rem" }, overflowWrap: "anywhere" }}>
                                 {project.project_name}
                             </Typography>
 
@@ -261,6 +263,9 @@ function ProjectDetailPage() {
             <Tabs
                 value={tab}
                 onChange={(e, newValue) => setTab(newValue)}
+                variant="scrollable"
+                scrollButtons="auto"
+                allowScrollButtonsMobile
                 sx={{ mb: 3 }}
             >
                 <Tab label="Parts" />

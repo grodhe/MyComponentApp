@@ -1,13 +1,16 @@
 import { useState } from "react";
 
-import { AppBar, Toolbar, Typography, Box, Button, IconButton, Stack, Tooltip } from "@mui/material";
+import { AppBar, Toolbar, Typography, Box, Button, IconButton, Stack, Tooltip, useMediaQuery } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScanner";
 
 import { useAuth } from "../../context/AuthContext";
 import BarcodeScanDialog from "../common/BarcodeScanDialog";
 
-function Header() {
+function Header({ onMenuClick }) {
+
+    const isMobile = useMediaQuery((theme) => theme.breakpoints.down("md"));
 
     const { username, authEnabled, logout } = useAuth();
     const [scanDialogOpen, setScanDialogOpen] = useState(false);
@@ -23,9 +26,22 @@ function Header() {
 
             <Toolbar>
 
-                <Typography variant="h6">
+                {isMobile && (
 
-                    📦 Hobbyist Inventory
+                    <IconButton
+                        color="inherit"
+                        edge="start"
+                        onClick={onMenuClick}
+                        sx={{ mr: 1 }}
+                    >
+                        <MenuIcon />
+                    </IconButton>
+
+                )}
+
+                <Typography variant="h6" noWrap>
+
+                    {isMobile ? "📦 Hobbyist" : "📦 Hobbyist Inventory"}
 
                 </Typography>
 
@@ -50,7 +66,7 @@ function Header() {
 
                     <Stack direction="row" spacing={2} alignItems="center">
 
-                        {username && (
+                        {username && !isMobile && (
 
                             <Typography variant="body2">
                                 {username}
@@ -63,8 +79,9 @@ function Header() {
                             size="small"
                             startIcon={<LogoutIcon />}
                             onClick={logout}
+                            sx={isMobile ? { minWidth: 0, "& .MuiButton-startIcon": { m: 0 } } : undefined}
                         >
-                            Sign Out
+                            {isMobile ? "" : "Sign Out"}
                         </Button>
 
                     </Stack>

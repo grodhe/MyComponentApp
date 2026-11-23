@@ -300,10 +300,11 @@ function ComponentsPage() {
         {
             field: "part_name",
             headerName: "Part Name",
-            flex: 3,
+            flex: 8,
+            minWidth: 260,
             renderCell: (params) => (
                 <Box sx={{ lineHeight: 1.3, py: 0.5, minWidth: 0 }}>
-                    <Box sx={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <Box sx={{ fontWeight: 600, overflow: "hidden", whiteSpace: "normal", overflowWrap: "anywhere", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
                         {params.row.part_name || params.row.part_number}
                     </Box>
                     {params.row.description && (
@@ -317,30 +318,35 @@ function ComponentsPage() {
 
         {
             field: "manufacturer",
+            hideOnMobile: true,
             headerName: "Manufacturer",
             width: 180
         },
 
         {
             field: "supplier",
+            hideOnMobile: true,
             headerName: "Supplier",
             width: 140
         },
 
         {
             field: "package",
+            hideOnMobile: true,
             headerName: "Package",
             width: 120
         },
 
         {
             field: "component_value",
+            hideOnMobile: true,
             headerName: "Value",
             width: 120
         },
 
         {
             field: "category",
+            hideOnMobile: true,
             headerName: "Category",
             width: 140
         },
@@ -348,7 +354,25 @@ function ComponentsPage() {
         {
             field: "location",
             headerName: "Location",
-            width: 140
+            width: 90,
+            // Narrow column; long paths wrap onto up to two lines.
+            renderCell: (params) => (
+                <Box
+                    sx={{
+                        fontSize: "0.85em",
+                        lineHeight: 1.25,
+                        whiteSpace: "normal",
+                        overflowWrap: "anywhere",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden"
+                    }}
+                    title={params.value ?? ""}
+                >
+                    {params.value}
+                </Box>
+            )
         },
 
         {

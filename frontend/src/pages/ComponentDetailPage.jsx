@@ -510,20 +510,22 @@ function ComponentDetailPage() {
 
                 <>
 
-                    <Stack direction="row" spacing={3} alignItems="flex-start" sx={{ mb: 1 }}>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 2, sm: 3 }} alignItems={{ xs: "center", sm: "flex-start" }} sx={{ mb: 1 }}>
 
                         <ComponentPhoto component={component} onChanged={load} />
 
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Box sx={{ flex: 1, minWidth: 0, width: "100%" }}>
 
                     <Stack
                         direction="row"
                         alignItems="center"
-                        spacing={2}
+                        flexWrap="wrap"
+                        useFlexGap
+                        spacing={1}
                         sx={{ mb: 1 }}
                     >
 
-                        <Typography variant="h4" fontWeight="bold">
+                        <Typography variant="h4" fontWeight="bold" sx={{ fontSize: { xs: "1.5rem", md: "2.125rem" }, overflowWrap: "anywhere" }}>
                             {component.part_name || component.part_number}
                         </Typography>
 
@@ -559,6 +561,8 @@ function ComponentDetailPage() {
                         <Stack
                             direction="row"
                             spacing={2}
+                            flexWrap="wrap"
+                            useFlexGap
                             sx={{ mb: 2 }}
                         >
 
@@ -599,7 +603,31 @@ function ComponentDetailPage() {
                     <Stack
                         direction="row"
                         spacing={1}
-                        sx={{ mb: 3 }}
+                        flexWrap="wrap"
+                        useFlexGap
+                        sx={{
+                            mb: 3,
+                            // Smaller buttons on phones so more fit per row.
+                            "& .MuiButton-root": {
+                                fontSize: { xs: "0.7rem", sm: "0.875rem" },
+                                px: { xs: 1, sm: 2 },
+                                py: { xs: 0.25, sm: 0.75 },
+                                minWidth: 0,
+                                // Keep each button at its natural width with
+                                // the label on one line, so the icon never
+                                // ends up outside the button's frame.
+                                flexShrink: 0,
+                                whiteSpace: "nowrap"
+                            },
+                            "& .MuiButton-startIcon": {
+                                mr: { xs: 0.5, sm: 1 },
+                                flexShrink: 0,
+                                "& svg": { fontSize: { xs: 16, sm: 20 } }
+                            },
+                            "& .MuiIconButton-root": {
+                                p: { xs: 0.5, sm: 1 }
+                            }
+                        }}
                     >
 
                         <Button
@@ -768,7 +796,8 @@ function ComponentDetailPage() {
 
                     ) : (
 
-                        <Table size="small">
+                        <Box sx={{ overflowX: "auto" }}>
+<Table size="small">
 
                             <TableHead>
                                 <TableRow>
@@ -809,6 +838,7 @@ function ComponentDetailPage() {
                             </TableBody>
 
                         </Table>
+</Box>
 
                     )}
 
@@ -826,7 +856,8 @@ function ComponentDetailPage() {
 
                     ) : (
 
-                        <Table size="small">
+                        <Box sx={{ overflowX: "auto" }}>
+<Table size="small">
 
                             <TableHead>
                                 <TableRow>
@@ -893,6 +924,7 @@ function ComponentDetailPage() {
                             </TableBody>
 
                         </Table>
+</Box>
 
                     )}
 

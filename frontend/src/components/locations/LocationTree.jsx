@@ -13,8 +13,11 @@ import {
     Menu,
     MenuItem,
     Typography,
-    Tooltip
+    Tooltip,
+    useMediaQuery
 } from "@mui/material";
+
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -89,7 +92,86 @@ function AddMenu({ onAddSubLocation, onAddComponent, onAddGenericItem }) {
 
 }
 
+// Phone version of a row's action buttons: one "..." button opening a menu,
+// so the name keeps the row's width instead of four icon buttons.
+function MobileActions({ node, actions }) {
+
+    const [anchorEl, setAnchorEl] = useState(null);
+
+    let items = [];
+
+    if (node.nodeType === "location") {
+
+        items = [
+            ["Print Label", () => actions.onPrintLocation(node.raw)],
+            ["Add Sub-Location", () => actions.onAddSubLocation(node.raw)],
+            ["Add Component", () => actions.onAddComponent(node.raw)],
+            ["Add Generic Item", () => actions.onAddGenericItem(node.raw)],
+            ["Edit", () => actions.onEditLocation(node.raw)],
+            ["Delete", () => actions.onDeleteLocation(node.raw)]
+        ];
+
+    } else if (node.nodeType === "component") {
+
+        items = [
+            ["Edit", () => actions.onEditComponent(node.raw)],
+            ["Delete", () => actions.onDeleteComponent(node.raw)]
+        ];
+
+    } else if (node.nodeType === "genericItem") {
+
+        items = [
+            ["Edit", () => actions.onEditGenericItem(node.raw)],
+            ["Delete", () => actions.onDeleteGenericItem(node.raw)]
+        ];
+
+    }
+
+    return (
+
+        <>
+
+            <IconButton
+                onClick={(event) => {
+                    event.stopPropagation();
+                    setAnchorEl(event.currentTarget);
+                }}
+            >
+                <MoreVertIcon />
+            </IconButton>
+
+            <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={() => setAnchorEl(null)}
+                onClick={(event) => event.stopPropagation()}
+            >
+
+                {items.map(([label, run]) => (
+
+                    <MenuItem
+                        key={label}
+                        onClick={() => {
+                            setAnchorEl(null);
+                            run();
+                        }}
+                    >
+                        {label}
+                    </MenuItem>
+
+                ))}
+
+            </Menu>
+
+        </>
+
+    );
+
+}
+
 function LocationTreeNode({ node, depth, actions }) {
+
+    const isMobile = useMediaQuery((theme) => theme.breakpoints.down("md"));
 
     // Start collapsed -- with several cabinets/drawers this keeps the
     // page from opening as one long wall of every component in the
@@ -126,6 +208,8 @@ function LocationTreeNode({ node, depth, actions }) {
             <ListItem
                 disablePadding
                 secondaryAction={
+
+                    isMobile ? <MobileActions node={node} actions={actions} /> :
 
                     // Default (medium) size icon buttons -- these were
                     // "small" before and hard to make out/tap, especially
@@ -230,7 +314,7 @@ function LocationTreeNode({ node, depth, actions }) {
 
                 <ListItemButton
                     onClick={handleRowClick}
-                    sx={{ pl: 1 + depth * 2.5, pr: 22 }}
+                    sx={{ pl: { xs: 0.5 + depth * 1.5, md: 1 + depth * 2.5 }, pr: { xs: 7, md: 22 } }}
                 >
 
                     {node.nodeType === "location" && hasChildren ? (
